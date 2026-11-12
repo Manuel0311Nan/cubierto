@@ -4,7 +4,7 @@ import sitemap from '@astrojs/sitemap';
 
 // Cambia `site` cuando tengas el dominio definitivo (también en src/config/site.ts).
 export default defineConfig({
-  site: 'https://zoenlab.com',
+  site: 'https://cubierto.com',
   trailingSlash: 'always',
   integrations: [
     sitemap({

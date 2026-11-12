@@ -5,8 +5,8 @@
  */
 
 export const site = {
-  name: 'Zoenlab', // TODO: nombre comercial definitivo
-  url: 'https://zoenlab.com', // TODO: dominio definitivo (se usa en canonical, sitemap y JSON-LD)
+  name: 'Cubierto',
+  url: 'https://cubierto.com', // TODO: dominio definitivo (se usa en canonical, sitemap y JSON-LD)
   locale: 'es_ES',
   tagline: 'Webs, carta QR y reservas para bares y restaurantes',
   description:
@@ -16,7 +16,7 @@ export const site = {
   areaServed: ['Alcalá de Henares', 'Torrejón de Ardoz', 'Guadalajara', 'Corredor del Henares', 'Madrid'],
 
   contact: {
-    email: 'hola@zoenlab.com', // TODO: email real
+    email: 'hola@cubierto.com', // TODO: email real
     phone: '', // TODO: teléfono en formato +34600000000 (vacío = no se muestra)
     whatsapp: '', // TODO: número para WhatsApp en formato 34600000000 (vacío = no se muestra)
     /**
@@ -38,7 +38,7 @@ export const site = {
     holder: '[Nombre y apellidos o razón social]', // TODO
     taxId: '[NIF]', // TODO
     address: '[Dirección fiscal], Alcalá de Henares (Madrid)', // TODO
-    email: 'hola@zoenlab.com', // TODO
+    email: 'hola@cubierto.com', // TODO
   },
 
   pilot: {

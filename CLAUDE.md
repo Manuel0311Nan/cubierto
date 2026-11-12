@@ -4,7 +4,7 @@ Guía de trabajo para Claude Code en este repositorio. Léela entera antes de ca
 
 ## 1. Qué es este proyecto
 
-Web comercial de **Zoenlab** para vender a bares y restaurantes de Alcalá de Henares y el Corredor del Henares tres servicios de la plataforma de hostelería:
+Web comercial de **Cubierto** para vender a bares y restaurantes de Alcalá de Henares y el Corredor del Henares tres servicios de la plataforma de hostelería:
 
 | Módulo | Clave | Página |
 |---|---|---|

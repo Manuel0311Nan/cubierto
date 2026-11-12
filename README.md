@@ -1,4 +1,4 @@
-# Web comercial · Zoenlab
+# Web comercial · Cubierto
 
 Web en **Astro** para vender la plataforma de hostelería: web + mantenimiento, carta digital con QR y reservas online. Estática, instalable como **PWA**, sin cookies y con casi nada de JavaScript.
 
