@@ -1,0 +1,141 @@
+---
+import Logo from './Logo.astro';
+import { nav } from '../config/site';
+
+const path = Astro.url.pathname;
+---
+
+<header class="header">
+  <div class="wrap bar">
+    <a href="/" class="home">
+      <Logo />
+    </a>
+
+    <nav class="desktop" aria-label="Principal">
+      <ul>
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={path === item.href ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <a class="btn btn-primary cta" href="/contacto/">Pedir una demo</a>
+
+    <details class="mobile">
+      <summary aria-label="Abrir menú">
+        <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+          <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+        </svg>
+      </summary>
+      <nav aria-label="Principal móvil">
+        <ul>
+          {
+            nav.map((item) => (
+              <li>
+                <a href={item.href}>{item.label}</a>
+              </li>
+            ))
+          }
+          <li><a class="btn btn-primary" href="/contacto/">Pedir una demo</a></li>
+        </ul>
+      </nav>
+    </details>
+  </div>
+</header>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--paper) 92%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 4.25rem;
+  }
+  .home {
+    text-decoration: none;
+    margin-right: auto;
+  }
+  .desktop ul {
+    display: flex;
+    gap: 1.6rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .desktop a {
+    text-decoration: none;
+    font-weight: 550;
+  }
+  .desktop a:hover,
+  .desktop a[aria-current='page'] {
+    text-decoration: underline;
+    text-decoration-color: var(--saffron);
+    text-decoration-thickness: 3px;
+  }
+  .cta {
+    min-height: 2.6rem;
+    padding: 0.5rem 1.1rem;
+  }
+
+  .mobile {
+    display: none;
+  }
+  .mobile summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 0.4rem;
+    border-radius: var(--radius-s);
+  }
+  .mobile summary::-webkit-details-marker {
+    display: none;
+  }
+  .mobile nav {
+    position: absolute;
+    inset: 4.25rem 0 auto 0;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    padding: var(--space-2) var(--gutter) var(--space-3);
+  }
+  .mobile ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.25rem;
+  }
+  .mobile li a:not(.btn) {
+    display: block;
+    padding: 0.7rem 0;
+    font-size: var(--step-1);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid var(--line);
+  }
+  .mobile .btn {
+    margin-top: var(--space-2);
+    width: 100%;
+  }
+
+  @media (max-width: 860px) {
+    .desktop,
+    .cta {
+      display: none;
+    }
+    .mobile {
+      display: block;
+    }
+  }
+</style>

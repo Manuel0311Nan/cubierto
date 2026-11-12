@@ -1,0 +1,225 @@
+---
+import { modules } from '../data/modules';
+import { pricing, formatEuros } from '../config/site';
+
+const sum = Object.values(pricing.monthly).reduce((a, b) => a + b, 0);
+const data = JSON.stringify({ monthly: pricing.monthly, pack: pricing.pack, setup: pricing.webSetupFrom });
+---
+
+<section class="pricing" id="precios" aria-labelledby="precios-title">
+  <div class="wrap inner">
+    <div class="copy">
+      <h2 id="precios-title">Elige qué necesitas y mira lo que pagarías</h2>
+      <p>Cada parte se contrata suelta. Con las tres juntas pagas {formatEuros(pricing.pack)} al mes en lugar de {formatEuros(sum)}.</p>
+      <p class="note">{pricing.vatNote}</p>
+    </div>
+
+    <form class="calc" data-calc={data} action="/contacto/" method="get">
+      <fieldset>
+        <legend class="visually-hidden">Módulos</legend>
+        {
+          modules.map((m) => (
+            <label class="opt">
+              <input type="checkbox" name="plan" value={m.key} checked />
+              <span class="box" aria-hidden="true" />
+              <span class="opt-name">{m.name}</span>
+              <span class="opt-price">{formatEuros(pricing.monthly[m.key])}/mes</span>
+            </label>
+          ))
+        }
+      </fieldset>
+
+      <div class="result" aria-live="polite">
+        <p class="total">
+          <span data-total>{formatEuros(pricing.pack)}</span>
+          <span class="per">al mes</span>
+        </p>
+        <p class="detail" data-detail>Precio de pack: ahorras {formatEuros(sum - pricing.pack)} al mes.</p>
+        <p class="detail" data-setup>Alta de la web: pago único desde {formatEuros(pricing.webSetupFrom)}.</p>
+      </div>
+
+      <button class="btn btn-primary" type="submit" data-submit>Pedir este plan</button>
+    </form>
+  </div>
+</section>
+
+<script>
+  const fmt = (n: number) =>
+    new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+
+  document.querySelectorAll<HTMLFormElement>('[data-calc]').forEach((form) => {
+    const cfg = JSON.parse(form.dataset.calc!) as {
+      monthly: Record<string, number>;
+      pack: number;
+      setup: number;
+    };
+    const total = form.querySelector<HTMLElement>('[data-total]')!;
+    const detail = form.querySelector<HTMLElement>('[data-detail]')!;
+    const setup = form.querySelector<HTMLElement>('[data-setup]')!;
+    const submit = form.querySelector<HTMLButtonElement>('[data-submit]')!;
+    const boxes = [...form.querySelectorAll<HTMLInputElement>('input[name="plan"]')];
+
+    const update = () => {
+      const chosen = boxes.filter((b) => b.checked).map((b) => b.value);
+      const sum = chosen.reduce((acc, k) => acc + (cfg.monthly[k] ?? 0), 0);
+      const isPack = chosen.length === boxes.length;
+      const price = isPack ? cfg.pack : sum;
+
+      total.textContent = fmt(price);
+      submit.disabled = chosen.length === 0;
+      setup.hidden = !chosen.includes('web');
+
+      if (chosen.length === 0) {
+        detail.textContent = 'Marca al menos un módulo.';
+      } else if (isPack) {
+        detail.textContent = `Precio de pack: ahorras ${fmt(sum - cfg.pack)} al mes.`;
+      } else {
+        const missing = boxes.length - chosen.length;
+        detail.textContent =
+          missing === 1
+            ? `Añade el que falta y pagarías ${fmt(cfg.pack)} por los tres.`
+            : 'Puedes añadir más módulos cuando quieras.';
+      }
+    };
+
+    form.addEventListener('change', update);
+    update();
+  });
+</script>
+
+<style>
+  .pricing {
+    background: var(--bottle);
+    color: var(--bottle-ink);
+    padding-block: var(--space-6);
+  }
+  .inner {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: var(--space-5);
+    align-items: center;
+  }
+  h2 {
+    font-size: var(--step-4);
+  }
+  .copy p {
+    margin-top: var(--space-2);
+    font-size: var(--step-1);
+    line-height: 1.5;
+    max-width: 30rem;
+  }
+  .copy .note {
+    font-size: var(--step--1);
+    opacity: 0.8;
+  }
+
+  .calc {
+    padding: var(--space-3);
+    border-radius: var(--radius-l);
+    background: var(--paper);
+    color: var(--ink);
+  }
+  fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.5rem;
+  }
+  .opt {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.9rem 1rem;
+    border: 2px solid var(--line);
+    border-radius: var(--radius-m);
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .opt:has(input:checked) {
+    border-color: var(--strong);
+    background: var(--tile);
+  }
+  .opt input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .box {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 6px;
+    border: 2px solid var(--muted);
+    display: grid;
+    place-items: center;
+  }
+  .opt input:checked + .box {
+    background: var(--strong);
+    border-color: var(--strong);
+  }
+  .opt input:checked + .box::after {
+    content: '';
+    width: 0.45rem;
+    height: 0.8rem;
+    border: solid var(--paper);
+    border-width: 0 3px 3px 0;
+    rotate: 45deg;
+    translate: 0 -2px;
+  }
+  .opt:has(input:focus-visible) {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+  .opt-price {
+    color: var(--muted);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .result {
+    margin-block: var(--space-3);
+  }
+  .total {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+  .total [data-total] {
+    font-size: var(--step-5);
+    font-weight: 750;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .per {
+    color: var(--muted);
+  }
+  .detail {
+    margin-top: 0.4rem;
+    color: var(--muted);
+  }
+  .calc .btn {
+    width: 100%;
+  }
+  .calc .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 900px) {
+    .inner {
+      grid-template-columns: 1fr;
+      gap: var(--space-4);
+    }
+  }
+  @media (max-width: 360px) {
+    .opt {
+      grid-template-columns: auto 1fr;
+    }
+    .opt-price {
+      grid-column: 2;
+    }
+  }
+</style>

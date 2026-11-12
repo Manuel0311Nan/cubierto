@@ -1,0 +1,159 @@
+---
+import ModuleIcon from './ModuleIcon.astro';
+import { modules } from '../data/modules';
+import { pricing, formatEuros } from '../config/site';
+---
+
+<section class="section" id="servicios" aria-labelledby="servicios-title">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 id="servicios-title">Tres cosas que puedes tener funcionando esta semana</h2>
+      <p>Empieza por la que más te duela hoy. Las demás se añaden cuando quieras, sin cambiar de sistema.</p>
+    </div>
+
+    <ul class="list">
+      {
+        modules.map((m) => (
+          <li class="item">
+            <div class="name">
+              <span class="icon">
+                <ModuleIcon name={m.key} />
+              </span>
+              <h3>{m.name}</h3>
+            </div>
+            <div class="body">
+              <p class="pitch">{m.pitch}</p>
+              <ul class="highlights">
+                {m.highlights.map((h) => (
+                  <li>{h}</li>
+                ))}
+              </ul>
+            </div>
+            <div class="price">
+              <p>
+                <span class="amount">{formatEuros(pricing.monthly[m.key])}</span>
+                <span class="per">al mes</span>
+              </p>
+              {m.key === 'web' && <p class="setup">+ alta desde {formatEuros(pricing.webSetupFrom)}</p>}
+              <a href={m.href}>Ver cómo funciona</a>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .item {
+    display: grid;
+    grid-template-columns: 17rem 1fr 11rem;
+    gap: var(--space-4);
+    padding-block: var(--space-4);
+    border-top: 2px solid var(--ink);
+  }
+  .item:last-child {
+    border-bottom: 2px solid var(--ink);
+  }
+  .name {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .icon {
+    display: inline-grid;
+    place-items: center;
+    width: 4rem;
+    height: 4rem;
+    border-radius: var(--radius-m);
+    background: var(--tile);
+    color: var(--strong);
+  }
+  h3 {
+    font-size: var(--step-3);
+  }
+  .pitch {
+    font-size: var(--step-1);
+    line-height: 1.5;
+    max-width: 34rem;
+  }
+  .highlights {
+    margin: var(--space-2) 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem 1.5rem;
+    color: var(--muted);
+  }
+  .highlights li {
+    position: relative;
+    padding-left: 1.4rem;
+  }
+  .highlights li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 3px;
+    background: var(--saffron);
+  }
+  .price {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .amount {
+    display: block;
+    font-size: var(--step-4);
+    font-weight: 750;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .per,
+  .setup {
+    color: var(--muted);
+    font-size: var(--step--1);
+  }
+  .price a {
+    margin-top: auto;
+    font-weight: 650;
+  }
+
+  @media (max-width: 960px) {
+    .item {
+      grid-template-columns: 1fr;
+      gap: var(--space-2);
+    }
+    .name {
+      flex-direction: row;
+      align-items: center;
+    }
+    .price {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.5rem 1rem;
+    }
+    .amount {
+      display: inline;
+      font-size: var(--step-3);
+    }
+    .price a {
+      margin-top: 0;
+      margin-left: auto;
+    }
+  }
+  @media (max-width: 560px) {
+    .highlights {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

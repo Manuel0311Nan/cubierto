@@ -1,0 +1,334 @@
+---
+import Base from './Base.astro';
+import ModuleIcon from '../components/ModuleIcon.astro';
+import Faq from '../components/Faq.astro';
+import ContactForm from '../components/ContactForm.astro';
+import { services } from '../data/services';
+import { modules } from '../data/modules';
+import { faqsFor } from '../data/faq';
+import { pricing, formatEuros, type ModuleKey } from '../config/site';
+import { faqJsonLd, breadcrumbJsonLd, serviceJsonLd } from '../lib/jsonld';
+
+interface Props {
+  service: ModuleKey;
+}
+
+const s = services[Astro.props.service];
+const mod = modules.find((m) => m.key === s.key)!;
+const others = modules.filter((m) => m.key !== s.key);
+const faqs = faqsFor(s.key);
+const price = pricing.monthly[s.key];
+
+const jsonLd = [
+  serviceJsonLd({ name: mod.name, description: s.seoDescription, path: s.path, price }),
+  breadcrumbJsonLd([{ name: mod.name, path: s.path }]),
+  faqJsonLd(faqs),
+];
+---
+
+<Base title={s.seoTitle} description={s.seoDescription} jsonLd={jsonLd}>
+  <section class="intro">
+    <div class="wrap">
+      <nav class="crumbs" aria-label="Estás en">
+        <a href="/">Inicio</a> <span aria-hidden="true">/</span> <span aria-current="page">{mod.name}</span>
+      </nav>
+      <div class="intro-grid">
+        <div>
+          <h1>{s.h1}</h1>
+          <p class="lead">{s.intro}</p>
+          <div class="actions">
+            <a class="btn btn-primary" href="#contacto">Pedir una demo</a>
+            <a class="btn btn-ghost" href="/#precios">Combinar con otros módulos</a>
+          </div>
+        </div>
+        <aside class="price-card" aria-label="Precio">
+          <span class="icon"><ModuleIcon name={s.key} size={40} /></span>
+          <p class="amount">{formatEuros(price)}<span> al mes</span></p>
+          {s.key === 'web' && <p class="setup">+ alta desde {formatEuros(pricing.webSetupFrom)}, pago único</p>}
+          <ul>
+            {s.included.map((i) => <li>{i}</li>)}
+          </ul>
+          <p class="small muted">{pricing.vatNote}</p>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="section compare" aria-labelledby="compare-title">
+    <div class="wrap">
+      <h2 id="compare-title">Lo que cambia en tu día a día</h2>
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Ahora</th>
+            <th scope="col">Con {mod.name.toLowerCase()}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            s.beforeAfter.map((r) => (
+              <tr>
+                <td data-label="Ahora">{r.before}</td>
+                <td data-label="Con nosotros">{r.after}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  {/* Demo interactiva propia de cada servicio (opcional) */}
+  <slot name="demo" />
+
+  <section class="section features" aria-labelledby="features-title">
+    <div class="wrap">
+      <h2 id="features-title">Qué incluye</h2>
+      <div class="feature-grid">
+        {
+          s.features.map((f) => (
+            <div class="feature">
+              <h3>{f.title}</h3>
+              <p>{f.text}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section others" aria-labelledby="others-title">
+    <div class="wrap">
+      <h2 id="others-title">Funciona mejor junto a</h2>
+      <div class="others-grid">
+        {
+          others.map((o) => (
+            <a class="other" href={o.href}>
+              <ModuleIcon name={o.key} size={36} />
+              <span>
+                <strong>{o.name}</strong>
+                <span class="muted">{o.pitch}</span>
+              </span>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <Faq items={faqs} />
+  <ContactForm preselect={s.key} heading={`¿Te enseño ${s.key === 'web' ? 'cómo quedaría tu web' : s.key === 'carta' ? 'tu carta en digital' : 'cómo reservarían tus clientes'}?`} />
+</Base>
+
+<style>
+  .intro {
+    padding-block: var(--space-4) var(--space-5);
+  }
+  .crumbs {
+    font-size: var(--step--1);
+    color: var(--muted);
+    margin-bottom: var(--space-3);
+  }
+  .intro-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: var(--space-5);
+    align-items: start;
+  }
+  h1 {
+    font-size: var(--step-5);
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+    font-weight: 750;
+    max-width: 16ch;
+  }
+  .lead {
+    margin-top: var(--space-3);
+    font-size: var(--step-1);
+    line-height: 1.5;
+    color: var(--muted);
+    max-width: 36rem;
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: var(--space-4);
+  }
+  .price-card {
+    padding: var(--space-3);
+    border-radius: var(--radius-l);
+    background: var(--bottle);
+    color: var(--bottle-ink);
+  }
+  .price-card .icon {
+    color: var(--saffron);
+  }
+  .amount {
+    margin-top: var(--space-2);
+    font-size: var(--step-4);
+    font-weight: 750;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .amount span {
+    margin-left: 0.35rem;
+    font-size: var(--step-0);
+    font-weight: 500;
+    letter-spacing: 0;
+    opacity: 0.8;
+  }
+  .setup {
+    margin-top: 0.4rem;
+    opacity: 0.85;
+  }
+  .price-card ul {
+    margin: var(--space-3) 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.45rem;
+  }
+  .price-card li {
+    position: relative;
+    padding-left: 1.4rem;
+  }
+  .price-card li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 3px;
+    background: var(--saffron);
+  }
+  .price-card .muted {
+    color: inherit;
+    opacity: 0.75;
+  }
+
+  .compare {
+    background: var(--tile);
+  }
+  h2 {
+    font-size: var(--step-4);
+    margin-bottom: var(--space-4);
+    max-width: 22ch;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--step-1);
+    line-height: 1.45;
+  }
+  th {
+    text-align: left;
+    font-size: var(--step-0);
+    padding: 0 1.5rem 0.8rem 0;
+    color: var(--muted);
+  }
+  th:last-child {
+    color: var(--strong);
+  }
+  td {
+    width: 50%;
+    vertical-align: top;
+    padding: 1.1rem 1.5rem 1.1rem 0;
+    border-top: 2px solid var(--line);
+  }
+  td:first-child {
+    color: var(--muted);
+  }
+  td:last-child {
+    font-weight: 600;
+  }
+
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4) var(--space-3);
+  }
+  .feature {
+    padding-top: var(--space-2);
+    border-top: 4px solid var(--saffron);
+  }
+  .feature h3 {
+    font-size: var(--step-2);
+  }
+  .feature p {
+    margin-top: 0.6rem;
+    color: var(--muted);
+  }
+
+  .others {
+    padding-top: 0;
+  }
+  .others-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2);
+  }
+  .other {
+    display: flex;
+    gap: var(--space-2);
+    align-items: flex-start;
+    padding: var(--space-3);
+    border: 2px solid var(--line);
+    border-radius: var(--radius-m);
+    text-decoration: none;
+    color: var(--strong);
+  }
+  .other:hover {
+    border-color: var(--strong);
+  }
+  .other > span {
+    display: grid;
+    gap: 0.3rem;
+    color: var(--ink);
+  }
+  .other strong {
+    font-size: var(--step-1);
+  }
+
+  @media (max-width: 900px) {
+    .intro-grid,
+    .others-grid {
+      grid-template-columns: 1fr;
+    }
+    .feature-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  @media (max-width: 600px) {
+    .feature-grid {
+      grid-template-columns: 1fr;
+    }
+    table,
+    thead,
+    tbody,
+    tr,
+    td {
+      display: block;
+      width: 100%;
+    }
+    thead {
+      display: none;
+    }
+    tr {
+      padding-block: 1rem;
+      border-top: 2px solid var(--line);
+    }
+    td {
+      border: 0;
+      padding: 0;
+    }
+    td::before {
+      content: attr(data-label) ': ';
+      font-weight: 650;
+    }
+    td:last-child {
+      margin-top: 0.4rem;
+    }
+  }
+</style>

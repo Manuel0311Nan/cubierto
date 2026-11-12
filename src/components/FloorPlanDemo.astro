@@ -1,0 +1,649 @@
+---
+/**
+ * Demo del plano de sala del módulo de reservas.
+ * SVG estático generado en build + un script pequeño que cambia estados.
+ * Local, nombres y reservas son inventados: es un ejemplo.
+ */
+
+type Shape = 'round' | 'square' | 'long';
+interface Table {
+  id: number;
+  zone: 'Terraza' | 'Sala';
+  shape: Shape;
+  seats: number;
+  x: number; // centro
+  y: number;
+}
+interface Booking {
+  tables: number[]; // varias = mesas juntas, se reservan juntas
+  start: string; // "HH:MM"
+  minutes: number;
+  people: number;
+  name: string;
+  note?: string;
+}
+
+const tables: Table[] = [
+  { id: 1, zone: 'Terraza', shape: 'round', seats: 2, x: 85, y: 130 },
+  { id: 2, zone: 'Terraza', shape: 'round', seats: 2, x: 175, y: 130 },
+  { id: 3, zone: 'Terraza', shape: 'round', seats: 2, x: 85, y: 245 },
+  { id: 4, zone: 'Terraza', shape: 'round', seats: 2, x: 175, y: 245 },
+  { id: 5, zone: 'Terraza', shape: 'square', seats: 4, x: 130, y: 370 },
+  { id: 6, zone: 'Sala', shape: 'square', seats: 4, x: 320, y: 180 },
+  { id: 7, zone: 'Sala', shape: 'square', seats: 4, x: 440, y: 180 },
+  { id: 8, zone: 'Sala', shape: 'square', seats: 4, x: 560, y: 180 },
+  { id: 9, zone: 'Sala', shape: 'square', seats: 4, x: 320, y: 300 },
+  { id: 10, zone: 'Sala', shape: 'square', seats: 4, x: 440, y: 300 },
+  { id: 11, zone: 'Sala', shape: 'long', seats: 6, x: 650, y: 300 },
+  { id: 12, zone: 'Sala', shape: 'long', seats: 8, x: 400, y: 410 },
+];
+
+const bookings: Booking[] = [
+  { tables: [6], start: '13:00', minutes: 120, people: 4, name: 'Marta G.' },
+  { tables: [5], start: '13:00', minutes: 120, people: 3, name: 'Javier P.', note: 'Viene con perro' },
+  { tables: [1], start: '13:30', minutes: 90, people: 2, name: 'Andrea R.' },
+  { tables: [9], start: '13:30', minutes: 120, people: 3, name: 'Familia Ortega', note: 'Necesitan trona' },
+  { tables: [3], start: '14:00', minutes: 90, people: 2, name: 'Luis M.' },
+  { tables: [7], start: '14:00', minutes: 120, people: 4, name: 'Carmen S.', note: 'Cumpleaños: sacar la tarta con vela' },
+  { tables: [11], start: '14:30', minutes: 120, people: 6, name: 'Taller Henares', note: 'Piden factura a nombre de la empresa' },
+  { tables: [2], start: '21:00', minutes: 90, people: 2, name: 'Paula y Dani' },
+  { tables: [4], start: '21:00', minutes: 90, people: 2, name: 'Sergio L.' },
+  { tables: [12], start: '21:00', minutes: 150, people: 8, name: 'Cena de antiguos alumnos' },
+  { tables: [8], start: '21:30', minutes: 120, people: 4, name: 'Elena V.', note: 'Primera vez, mesa tranquila' },
+  { tables: [6], start: '22:00', minutes: 120, people: 4, name: 'Rubén A.' },
+  { tables: [9, 10], start: '21:00', minutes: 150, people: 8, name: 'Cumpleaños de Lucía', note: 'Traen su propia tarta' },
+];
+
+const times = ['13:00', '14:00', '15:00', '21:00', '22:00'];
+const initialTime = '14:00';
+
+const size = (t: Table) =>
+  t.shape === 'round' ? { w: 52, h: 52 } : t.shape === 'square' ? { w: 64, h: 64 } : { w: t.seats === 8 ? 220 : 150, h: 58 };
+
+/** Sillas alrededor de cada mesa: pequeños rectángulos. */
+const chairs = (t: Table) => {
+  const { w, h } = size(t);
+  const out: Array<{ x: number; y: number; w: number; h: number }> = [];
+  const cw = 22,
+    ch = 10,
+    gap = 6;
+  if (t.shape === 'round') {
+    out.push({ x: t.x - w / 2 - gap - ch, y: t.y - cw / 2, w: ch, h: cw });
+    out.push({ x: t.x + w / 2 + gap, y: t.y - cw / 2, w: ch, h: cw });
+  } else if (t.shape === 'square') {
+    out.push({ x: t.x - cw / 2, y: t.y - h / 2 - gap - ch, w: cw, h: ch });
+    out.push({ x: t.x - cw / 2, y: t.y + h / 2 + gap, w: cw, h: ch });
+    out.push({ x: t.x - w / 2 - gap - ch, y: t.y - cw / 2, w: ch, h: cw });
+    out.push({ x: t.x + w / 2 + gap, y: t.y - cw / 2, w: ch, h: cw });
+  } else {
+    const perSide = t.seats / 2;
+    for (let i = 0; i < perSide; i++) {
+      const cx = t.x - w / 2 + (w / perSide) * (i + 0.5);
+      out.push({ x: cx - cw / 2, y: t.y - h / 2 - gap - ch, w: cw, h: ch });
+      out.push({ x: cx - cw / 2, y: t.y + h / 2 + gap, w: cw, h: ch });
+    }
+  }
+  return out;
+};
+
+/** Unión visual entre mesas juntas: un tablero que las conecta (se muestra solo cuando la reserva está activa). */
+const joins = bookings
+  .filter((b) => b.tables.length > 1)
+  .map((b) => {
+    const ts = b.tables.map((id) => tables.find((t) => t.id === id)!);
+    const xs = ts.flatMap((t) => [t.x - size(t).w / 2, t.x + size(t).w / 2]);
+    const ys = ts.flatMap((t) => [t.y - size(t).h / 2, t.y + size(t).h / 2]);
+    return { key: b.tables.join('-'), x: Math.min(...xs), y: Math.min(...ys), w: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys), ids: b.tables };
+  });
+
+const data = JSON.stringify({ tables, bookings, initialTime });
+---
+
+<div class="fp" data-floorplan={data}>
+  <div class="fp-bar">
+    <div class="fp-times" role="group" aria-label="Hora del servicio">
+      {
+        times.map((t) => (
+          <button type="button" class="fp-time" data-time={t} aria-pressed={t === initialTime ? 'true' : 'false'}>
+            {t}
+          </button>
+        ))
+      }
+    </div>
+    <ul class="fp-legend" aria-label="Leyenda">
+      <li><span class="sw sw-free"></span>Libre</li>
+      <li><span class="sw sw-soon"></span>Reservada, llega en menos de 1 h</li>
+      <li><span class="sw sw-seated"></span>En mesa</li>
+    </ul>
+  </div>
+
+  <div class="fp-body">
+    <div class="fp-scroll">
+    <svg class="fp-plan" viewBox="0 0 800 500" role="group" aria-label="Plano de sala de Casa Brezo">
+      <!-- Estructura del local -->
+      <rect x="20" y="20" width="760" height="460" rx="14" class="wall"></rect>
+      <rect x="20" y="20" width="210" height="460" rx="14" class="terrace"></rect>
+      <text x="40" y="52" class="zone">Terraza</text>
+      <text x="252" y="52" class="zone">Sala</text>
+      <rect x="600" y="20" width="180" height="120" class="room"></rect>
+      <text x="690" y="86" class="room-label" text-anchor="middle">Cocina</text>
+      <rect x="300" y="64" width="260" height="34" rx="6" class="bar"></rect>
+      <text x="430" y="86" class="room-label" text-anchor="middle">Barra</text>
+      <line x1="520" y1="480" x2="600" y2="480" class="door"></line>
+      <text x="560" y="470" class="door-label" text-anchor="middle">Entrada</text>
+
+      {
+        tables.map((t) => {
+          const { w, h } = size(t);
+          return (
+            <g class="table is-free" data-table={t.id} role="button" tabindex="0" aria-label={`Mesa ${t.id}, ${t.seats} plazas, libre`}>
+              {chairs(t).map((c) => (
+                <rect class="chair" x={c.x} y={c.y} width={c.w} height={c.h} rx="4" />
+              ))}
+              {t.shape === 'round' ? (
+                <circle class="top" cx={t.x} cy={t.y} r={w / 2} />
+              ) : (
+                <rect class="top" x={t.x - w / 2} y={t.y - h / 2} width={w} height={h} rx="8" />
+              )}
+              <text class="num" x={t.x} y={t.y + 6} text-anchor="middle">
+                {t.id}
+              </text>
+            </g>
+          );
+        })
+      }
+      {
+        joins.map((j) => (
+          <g class="join" data-join={j.key} aria-hidden="true">
+            <rect class="join-top" x={j.x} y={j.y} width={j.w} height={j.h} rx="8" />
+            {j.ids.map((id) => {
+              const t = tables.find((x) => x.id === id)!;
+              return (
+                <text class="num" x={t.x} y={t.y + 6} text-anchor="middle">
+                  {id}
+                </text>
+              );
+            })}
+          </g>
+        ))
+      }
+    </svg>
+    </div>
+    <p class="fp-swipe">Desliza el plano para ver todo el local.</p>
+
+    <aside class="fp-side">
+      <p class="fp-summary" data-summary aria-live="polite"></p>
+      <div class="fp-detail" data-detail aria-live="polite">
+        <p class="fp-hint">Toca una mesa para ver su reserva.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+  type Shape = 'round' | 'square' | 'long';
+  interface Table { id: number; zone: string; shape: Shape; seats: number }
+  interface Booking { tables: number[]; start: string; minutes: number; people: number; name: string; note?: string }
+  type Status = 'free' | 'soon' | 'seated';
+
+  const toMin = (hhmm: string) => {
+    const [h, m] = hhmm.split(':').map(Number);
+    return h * 60 + m;
+  };
+  const toHHMM = (min: number) => `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
+  const statusLabel: Record<Status, string> = { free: 'libre', soon: 'reservada', seated: 'en mesa' };
+
+  document.querySelectorAll<HTMLElement>('[data-floorplan]').forEach((root) => {
+    const { tables, bookings, initialTime } = JSON.parse(root.dataset.floorplan!) as {
+      tables: Table[];
+      bookings: Booking[];
+      initialTime: string;
+    };
+    const summary = root.querySelector<HTMLElement>('[data-summary]')!;
+    const detail = root.querySelector<HTMLElement>('[data-detail]')!;
+    let now = toMin(initialTime);
+    let selected: number | null = null;
+    // Cambios hechos por el visitante (sentar, liberar, sin reserva) para la hora actual.
+    let overrides = new Map<number, { status: Status; walkIn?: boolean }>();
+
+    /** La reserva relevante de una mesa a esta hora: la que está en curso o la próxima en 60 min. */
+    const bookingAt = (tableId: number) => {
+      const list = bookings.filter((b) => b.tables.includes(tableId));
+      const current = list.find((b) => now >= toMin(b.start) && now < toMin(b.start) + b.minutes);
+      if (current) return { booking: current, status: 'seated' as Status };
+      const next = list
+        .filter((b) => toMin(b.start) > now && toMin(b.start) - now <= 60)
+        .sort((a, b) => toMin(a.start) - toMin(b.start))[0];
+      if (next) return { booking: next, status: 'soon' as Status };
+      return { booking: undefined, status: 'free' as Status };
+    };
+
+    const stateOf = (tableId: number) => {
+      const base = bookingAt(tableId);
+      const o = overrides.get(tableId);
+      return o ? { ...base, status: o.status, walkIn: o.walkIn } : { ...base, walkIn: false };
+    };
+
+    /** Mesas que van juntas con esta ahora mismo (las de su reserva activa). */
+    const groupOf = (tableId: number) => {
+      const s = stateOf(tableId);
+      return s.booking && !s.walkIn && s.status !== 'free' ? s.booking.tables : [tableId];
+    };
+
+    const render = () => {
+      let inUse = 0,
+        soon = 0,
+        covers = 0;
+      const counted = new Set<Booking>();
+      const highlighted = selected === null ? [] : groupOf(selected);
+      tables.forEach((t) => {
+        const g = root.querySelector<SVGGElement>(`[data-table="${t.id}"]`)!;
+        const s = stateOf(t.id);
+        g.classList.remove('is-free', 'is-soon', 'is-seated');
+        g.classList.add(`is-${s.status}`);
+        g.classList.toggle('is-selected', highlighted.includes(t.id));
+        const who = s.booking && !s.walkIn ? `, ${s.booking.name} a las ${s.booking.start}` : '';
+        g.setAttribute('aria-label', `Mesa ${t.id}, ${t.seats} plazas, ${statusLabel[s.status]}${s.status === 'free' ? '' : who}`);
+        g.setAttribute('aria-pressed', String(highlighted.includes(t.id)));
+        if (s.status === 'seated') {
+          inUse++;
+          if (s.walkIn || !s.booking) covers += t.seats;
+          else if (!counted.has(s.booking)) {
+            counted.add(s.booking);
+            covers += s.booking.people;
+          }
+        }
+        if (s.status === 'soon' && s.booking && !counted.has(s.booking)) {
+          counted.add(s.booking);
+          soon++;
+        }
+      });
+      // Mesas juntas: se dibujan unidas mientras su reserva está activa.
+      root.querySelectorAll<SVGGElement>('[data-join]').forEach((j) => {
+        const ids = j.dataset.join!.split('-').map(Number);
+        const s = stateOf(ids[0]);
+        const active = s.status !== 'free' && !s.walkIn && s.booking?.tables.join('-') === j.dataset.join;
+        j.classList.remove('is-soon', 'is-seated');
+        if (active) j.classList.add(`is-${s.status}`);
+        j.classList.toggle('is-active', Boolean(active));
+        j.classList.toggle('is-selected', Boolean(active) && highlighted.includes(ids[0]));
+      });
+      summary.innerHTML = `<strong>A las ${toHHMM(now)}</strong>: ${inUse} de ${tables.length} mesas en uso, ${covers} personas sentadas y ${soon} ${soon === 1 ? 'reserva llega' : 'reservas llegan'} en la próxima hora.`;
+      renderDetail();
+    };
+
+    const renderDetail = () => {
+      if (selected === null) {
+        detail.innerHTML = '<p class="fp-hint">Toca una mesa para ver su reserva.</p>';
+        return;
+      }
+      const t = tables.find((x) => x.id === selected)!;
+      const s = stateOf(t.id);
+      const group = groupOf(t.id);
+      const seats = group.reduce((acc, id) => acc + tables.find((x) => x.id === id)!.seats, 0);
+      const head =
+        group.length > 1
+          ? `<p class="fp-table">Mesas ${group.join(' + ')} <span>Juntas · ${t.zone} · ${seats} plazas</span></p>`
+          : `<p class="fp-table">Mesa ${t.id} <span>${t.zone} · ${t.seats} plazas</span></p>`;
+      let body = '';
+      let action = '';
+      if (s.walkIn) {
+        body = '<p>Cliente sin reserva, sentado ahora.</p>';
+        action = '<button type="button" class="fp-btn" data-act="free">Liberar mesa</button>';
+      } else if (s.booking && s.status !== 'free') {
+        const b = s.booking;
+        body = `<p class="fp-name">${b.name}</p>
+          <p>${b.start} · ${b.people} ${b.people === 1 ? 'persona' : 'personas'}</p>
+          ${b.note ? `<p class="fp-note">${b.note}</p>` : ''}`;
+        const plural = group.length > 1;
+        action =
+          s.status === 'soon'
+            ? '<button type="button" class="fp-btn" data-act="seat">Han llegado: sentar</button>'
+            : `<button type="button" class="fp-btn" data-act="free">${plural ? 'Liberar las mesas' : 'Liberar mesa'}</button>`;
+      } else {
+        const later = bookings
+          .filter((b) => b.tables.includes(t.id) && toMin(b.start) > now)
+          .sort((a, b) => toMin(a.start) - toMin(b.start))[0];
+        body = later ? `<p>Libre ahora. Próxima reserva a las ${later.start}.</p>` : '<p>Libre el resto del turno.</p>';
+        action = '<button type="button" class="fp-btn" data-act="walkin">Sentar a alguien sin reserva</button>';
+      }
+      detail.innerHTML = `${head}${body}${action}`;
+    };
+
+    const select = (id: number) => {
+      selected = selected === id ? null : id;
+      render();
+    };
+
+    root.addEventListener('click', (ev) => {
+      const el = ev.target as Element;
+      const timeBtn = el.closest<HTMLButtonElement>('[data-time]');
+      if (timeBtn) {
+        now = toMin(timeBtn.dataset.time!);
+        overrides = new Map();
+        root.querySelectorAll('[data-time]').forEach((b) => b.setAttribute('aria-pressed', String(b === timeBtn)));
+        render();
+        return;
+      }
+      const table = el.closest<SVGGElement>('[data-table]');
+      if (table) {
+        select(Number(table.dataset.table));
+        return;
+      }
+      const act = el.closest<HTMLButtonElement>('[data-act]')?.dataset.act;
+      if (act && selected !== null) {
+        const group = groupOf(selected);
+        // Las mesas juntas se reservan juntas: la acción se aplica a todas.
+        group.forEach((id) => {
+          if (act === 'seat') overrides.set(id, { status: 'seated' });
+          if (act === 'free') overrides.set(id, { status: 'free' });
+          if (act === 'walkin') overrides.set(id, { status: 'seated', walkIn: true });
+        });
+        render();
+      }
+    });
+
+    root.addEventListener('keydown', (ev) => {
+      const table = (ev.target as Element).closest<SVGGElement>('[data-table]');
+      if (table && (ev.key === 'Enter' || ev.key === ' ')) {
+        ev.preventDefault();
+        select(Number(table.dataset.table));
+      }
+    });
+
+    render();
+  });
+</script>
+
+<style>
+  .fp {
+    border: 2px solid var(--line);
+    border-radius: var(--radius-l);
+    background: var(--surface);
+    padding: var(--space-3);
+  }
+  .fp-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
+  .fp-times {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .fp-time {
+    min-height: 2.5rem;
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    border: 2px solid var(--line);
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+  }
+  .fp-time[aria-pressed='true'] {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper);
+  }
+  .fp-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.1rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: var(--step--1);
+    color: var(--muted);
+  }
+  .fp-legend li {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .sw {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 4px;
+    border: 2px solid var(--line);
+  }
+  .sw-soon {
+    background: color-mix(in srgb, var(--saffron) 35%, var(--surface));
+    border-color: var(--saffron);
+  }
+  .sw-seated {
+    background: var(--bottle);
+    border-color: var(--bottle);
+  }
+
+  .fp-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 16rem;
+    gap: var(--space-3);
+    align-items: start;
+  }
+  .fp-plan {
+    display: block;
+    width: 100%;
+    height: auto;
+    font-family: var(--font);
+  }
+  .fp-swipe {
+    display: none;
+  }
+
+  /* Estructura */
+  .wall {
+    fill: var(--paper);
+    stroke: var(--ink);
+    stroke-width: 3;
+  }
+  .terrace {
+    fill: var(--tile);
+    stroke: var(--line);
+    stroke-width: 2;
+    stroke-dasharray: 8 6;
+  }
+  .room {
+    fill: var(--tile);
+    stroke: var(--ink);
+    stroke-width: 2;
+  }
+  .bar {
+    fill: var(--tile);
+    stroke: var(--muted);
+    stroke-width: 2;
+  }
+  .zone {
+    font-size: 18px;
+    font-weight: 700;
+    fill: var(--muted);
+  }
+  .room-label {
+    font-size: 15px;
+    font-weight: 600;
+    fill: var(--muted);
+  }
+  .door {
+    stroke: var(--saffron);
+    stroke-width: 8;
+  }
+  .door-label {
+    font-size: 13px;
+    font-weight: 600;
+    fill: var(--muted);
+  }
+
+  /* Mesas */
+  .table {
+    cursor: pointer;
+    outline: none;
+  }
+  .table .chair {
+    fill: var(--line);
+  }
+  .table .top {
+    fill: var(--surface);
+    stroke: var(--muted);
+    stroke-width: 2.5;
+    transition: fill 0.2s ease, stroke 0.2s ease;
+  }
+  .table .num {
+    font-size: 18px;
+    font-weight: 750;
+    fill: var(--ink);
+    pointer-events: none;
+  }
+  .table:global(.is-soon) .top {
+    fill: color-mix(in srgb, var(--saffron) 35%, var(--surface));
+    stroke: var(--saffron);
+  }
+  .table:global(.is-seated) .top {
+    fill: var(--bottle);
+    stroke: var(--bottle);
+  }
+  .table:global(.is-seated) .num {
+    fill: var(--bottle-ink);
+  }
+  .table:global(.is-seated) .chair {
+    fill: color-mix(in srgb, var(--bottle) 55%, var(--line));
+  }
+  .table:hover .top,
+  .table:focus-visible .top {
+    stroke: var(--ink);
+    stroke-width: 4;
+  }
+  .table:global(.is-selected) .top {
+    stroke: var(--ink);
+    stroke-width: 5;
+  }
+
+  .join {
+    display: none;
+    pointer-events: none;
+  }
+  .join:global(.is-active) {
+    display: inline;
+  }
+  .join .join-top {
+    stroke-width: 2.5;
+  }
+  .join .num {
+    font-size: 18px;
+    font-weight: 750;
+    fill: var(--ink);
+  }
+  .join:global(.is-soon) .join-top {
+    fill: color-mix(in srgb, var(--saffron) 35%, var(--surface));
+    stroke: var(--saffron);
+  }
+  .join:global(.is-seated) .join-top {
+    fill: var(--bottle);
+    stroke: var(--bottle);
+  }
+  .join:global(.is-seated) .num {
+    fill: var(--bottle-ink);
+  }
+  .join:global(.is-selected) .join-top {
+    stroke: var(--ink);
+    stroke-width: 5;
+  }
+
+  .fp-side {
+    display: grid;
+    gap: var(--space-2);
+  }
+  .fp-summary {
+    font-size: var(--step--1);
+    line-height: 1.5;
+    color: var(--muted);
+  }
+  .fp-summary :global(strong) {
+    color: var(--ink);
+  }
+  .fp-detail {
+    min-height: 11rem;
+    padding: var(--space-2);
+    border-radius: var(--radius-m);
+    background: var(--tile);
+  }
+  .fp-detail :global(p + p) {
+    margin-top: 0.3rem;
+  }
+  .fp-detail :global(.fp-hint) {
+    color: var(--muted);
+  }
+  .fp-detail :global(.fp-table) {
+    font-weight: 750;
+    font-size: var(--step-1);
+  }
+  .fp-detail :global(.fp-table span) {
+    display: block;
+    font-size: var(--step--1);
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .fp-detail :global(.fp-name) {
+    margin-top: 0.6rem;
+    font-weight: 650;
+  }
+  .fp-detail :global(.fp-note) {
+    padding: 0.4rem 0.6rem;
+    border-left: 3px solid var(--saffron);
+    background: var(--surface);
+    font-size: var(--step--1);
+  }
+  .fp-detail :global(.fp-btn) {
+    margin-top: var(--space-2);
+    width: 100%;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.9rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--ink);
+    color: var(--paper);
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+  }
+
+  @media (max-width: 900px) {
+    .fp-body {
+      grid-template-columns: 1fr;
+    }
+    .fp-detail {
+      min-height: 0;
+    }
+  }
+  /* En móvil el plano mantiene un tamaño en el que las mesas se pueden tocar. */
+  @media (max-width: 640px) {
+    .fp {
+      padding: var(--space-2);
+    }
+    .fp-body {
+      gap: var(--space-2);
+    }
+    .fp-scroll {
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      -webkit-overflow-scrolling: touch;
+      margin-inline: calc(-1 * var(--space-2));
+      padding-inline: var(--space-2);
+    }
+    .fp-plan {
+      width: 620px;
+      max-width: none;
+    }
+    .fp-swipe {
+      display: block;
+      font-size: var(--step--1);
+      color: var(--muted);
+    }
+  }
+</style>

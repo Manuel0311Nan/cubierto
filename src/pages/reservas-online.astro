@@ -1,0 +1,40 @@
+---
+import ServicePage from '../layouts/ServicePage.astro';
+import FloorPlanDemo from '../components/FloorPlanDemo.astro';
+---
+
+<ServicePage service="reservas">
+  <section slot="demo" class="section demo" aria-labelledby="sala-title">
+    <div class="wrap">
+      <div class="head">
+        <h2 id="sala-title">Tu sala, de un vistazo</h2>
+        <p>
+          Cada mesa en su sitio y con su estado: libre, reservada o ocupada. Cambia la hora para ver cómo va el servicio y toca una mesa para ver la reserva, sentar a los que llegan o apuntar a alguien sin reserva.
+        </p>
+      </div>
+      <FloorPlanDemo />
+      <p class="note">Ejemplo con un local y reservas inventados. El plano de tu local lo dibujamos juntos con tus mesas reales.</p>
+    </div>
+  </section>
+</ServicePage>
+
+<style>
+  .head {
+    max-width: 42rem;
+    margin-bottom: var(--space-4);
+  }
+  h2 {
+    font-size: var(--step-4);
+  }
+  .head p {
+    margin-top: var(--space-2);
+    font-size: var(--step-1);
+    line-height: 1.5;
+    color: var(--muted);
+  }
+  .note {
+    margin-top: var(--space-2);
+    font-size: var(--step--1);
+    color: var(--muted);
+  }
+</style>

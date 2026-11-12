@@ -1,0 +1,63 @@
+---
+import { site } from '../config/site';
+const { pilot } = site;
+---
+
+{
+  pilot.enabled && (
+    <section class="pilot-wrap" aria-labelledby="piloto-title">
+      <div class="wrap">
+        <div class="pilot">
+          <div>
+            <h2 id="piloto-title">Busco {pilot.spots} locales de {site.city} para empezar</h2>
+            <p>
+              Estoy arrancando y quiero hacerlo bien: con pocos restaurantes, cerca, escuchando qué funciona en el servicio real. Si entras en el piloto:
+            </p>
+            <ul>
+              <li>{pilot.discountText}.</li>
+              <li>Lo que me pidas durante el piloto entra antes en el producto.</li>
+              <li>Te lo instalo y te enseño en persona.</li>
+            </ul>
+          </div>
+          <a class="btn btn-primary" href="/contacto/?motivo=piloto">Quiero entrar en el piloto</a>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .pilot-wrap {
+    padding-block: 0 var(--space-6);
+  }
+  .pilot {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--space-4);
+    align-items: end;
+    padding: var(--space-4);
+    border-radius: var(--radius-l);
+    border: 3px solid var(--saffron);
+    background: color-mix(in srgb, var(--saffron) 10%, var(--paper));
+  }
+  h2 {
+    font-size: var(--step-3);
+  }
+  p {
+    margin-top: var(--space-2);
+    max-width: 40rem;
+  }
+  ul {
+    margin: var(--space-2) 0 0;
+    padding-left: 1.2rem;
+  }
+  li + li {
+    margin-top: 0.3rem;
+  }
+  @media (max-width: 760px) {
+    .pilot {
+      grid-template-columns: 1fr;
+      padding: var(--space-3);
+    }
+  }
+</style>

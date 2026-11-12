@@ -1,0 +1,343 @@
+---
+import { site } from '../config/site';
+import { modules } from '../data/modules';
+
+interface Props {
+  /** Módulo que viene marcado por defecto (en las páginas de servicio). */
+  preselect?: string;
+  heading?: string;
+  /** Nivel del título: h1 en /contacto/, h2 dentro de otras páginas. */
+  level?: 'h1' | 'h2';
+}
+const { preselect, heading = 'Cuéntame qué necesitas', level = 'h2' } = Astro.props;
+const Heading = level;
+const endpoint = site.contact.formEndpoint;
+const wa = site.contact.whatsapp;
+---
+
+<section class="section" id="contacto" aria-labelledby="contacto-title">
+  <div class="wrap grid">
+    <div class="side">
+      <Heading class="title" id="contacto-title">{heading}</Heading>
+      <p>Te respondo en menos de 24 horas laborables, normalmente el mismo día. Si prefieres, te llamo yo en el hueco que me digas.</p>
+      <ul class="direct">
+        <li><a href={`mailto:${site.contact.email}`}>{site.contact.email}</a></li>
+        {site.contact.phone && <li><a href={`tel:${site.contact.phone}`}>{site.contact.phone}</a></li>}
+        {wa && <li><a href={`https://wa.me/${wa}`} rel="noopener">Escribir por WhatsApp</a></li>}
+      </ul>
+    </div>
+
+    <form
+      class="form"
+      data-contact
+      data-endpoint={endpoint}
+      data-email={site.contact.email}
+      action={endpoint || `mailto:${site.contact.email}`}
+      method="post"
+      enctype={endpoint ? undefined : 'text/plain'}
+      novalidate
+    >
+      <div class="two">
+        <div class="field">
+          <label for="cf-name">Tu nombre</label>
+          <input id="cf-name" name="name" autocomplete="name" required maxlength="80" />
+        </div>
+        <div class="field">
+          <label for="cf-venue">Nombre del local</label>
+          <input id="cf-venue" name="venue" autocomplete="organization" required maxlength="100" />
+        </div>
+      </div>
+
+      <div class="two">
+        <div class="field">
+          <label for="cf-phone">Teléfono</label>
+          <input id="cf-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required pattern="[+0-9 ]{9,16}" />
+        </div>
+        <div class="field">
+          <label for="cf-email">Email <span class="opt">(opcional)</span></label>
+          <input id="cf-email" name="email" type="email" autocomplete="email" maxlength="120" />
+        </div>
+      </div>
+
+      <fieldset class="field">
+        <legend>Qué te interesa</legend>
+        <div class="checks">
+          {
+            modules.map((m) => (
+              <label class="check">
+                <input type="checkbox" name="interest" value={m.key} checked={preselect === m.key} />
+                <span>{m.name}</span>
+              </label>
+            ))
+          }
+        </div>
+      </fieldset>
+
+      <div class="field">
+        <label for="cf-msg">Mensaje <span class="opt">(opcional)</span></label>
+        <textarea id="cf-msg" name="message" rows="4" maxlength="1500" placeholder="Por ejemplo: tenemos 14 mesas y las reservas las cogemos por teléfono."></textarea>
+      </div>
+
+      <div class="hp" aria-hidden="true">
+        <label for="cf-company">No rellenes este campo</label>
+        <input id="cf-company" name="company" tabindex="-1" autocomplete="off" />
+      </div>
+      <input type="hidden" name="source" value="" data-source />
+
+      <label class="check consent">
+        <input type="checkbox" name="consent" value="yes" required />
+        <span>He leído la <a href="/privacidad/">política de privacidad</a> y acepto que uséis mis datos para responderme.</span>
+      </label>
+
+      <p class="error" data-error role="alert" hidden></p>
+
+      <button class="btn btn-primary" type="submit" data-submit>Enviar mensaje</button>
+
+      <div class="ok" data-ok hidden tabindex="-1">
+        <h3>Mensaje enviado</h3>
+        <p>Gracias. Te escribo o te llamo en menos de 24 horas laborables.</p>
+      </div>
+    </form>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLFormElement>('form[data-contact]').forEach((form) => {
+    const endpoint = form.dataset.endpoint ?? '';
+    const email = form.dataset.email ?? '';
+    const error = form.querySelector<HTMLElement>('[data-error]')!;
+    const ok = form.querySelector<HTMLElement>('[data-ok]')!;
+    const submit = form.querySelector<HTMLButtonElement>('[data-submit]')!;
+    const source = form.querySelector<HTMLInputElement>('[data-source]')!;
+
+    // Rellena desde la URL: /contacto/?plan=carta&plan=reservas o ?motivo=piloto
+    const params = new URLSearchParams(location.search);
+    const plans = params.getAll('plan').flatMap((p) => p.split(','));
+    if (plans.length) {
+      form.querySelectorAll<HTMLInputElement>('input[name="interest"]').forEach((b) => {
+        b.checked = plans.includes(b.value);
+      });
+    }
+    const motivo = params.get('motivo');
+    source.value = [location.pathname, motivo].filter(Boolean).join(' · ');
+    if (motivo === 'piloto') {
+      const msg = form.querySelector<HTMLTextAreaElement>('textarea[name="message"]')!;
+      if (!msg.value) msg.value = 'Me interesa entrar en el piloto.';
+    }
+
+    const showError = (text: string) => {
+      error.textContent = text;
+      error.hidden = false;
+    };
+
+    form.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      error.hidden = true;
+
+      const data = new FormData(form);
+      if (data.get('company')) return; // bot
+
+      const firstInvalid = [...form.elements].find(
+        (el) => el instanceof HTMLInputElement && !el.checkValidity(),
+      ) as HTMLInputElement | undefined;
+      if (firstInvalid) {
+        const label = firstInvalid.name === 'consent'
+          ? 'Marca la casilla de privacidad para poder enviarlo.'
+          : firstInvalid.name === 'phone'
+            ? 'Escribe un teléfono válido, por ejemplo 600 123 456.'
+            : 'Rellena tu nombre y el nombre del local.';
+        showError(label);
+        firstInvalid.focus();
+        return;
+      }
+
+      const payload = {
+        name: data.get('name'),
+        venue: data.get('venue'),
+        phone: data.get('phone'),
+        email: data.get('email'),
+        interest: data.getAll('interest'),
+        message: data.get('message'),
+        source: data.get('source'),
+        consent: true,
+        sentAt: new Date().toISOString(),
+      };
+
+      if (!endpoint) {
+        const body = [
+          `Nombre: ${payload.name}`,
+          `Local: ${payload.venue}`,
+          `Teléfono: ${payload.phone}`,
+          `Email: ${payload.email || '-'}`,
+          `Interés: ${payload.interest.join(', ') || '-'}`,
+          '',
+          String(payload.message || ''),
+        ].join('\n');
+        location.href = `mailto:${email}?subject=${encodeURIComponent('Información para ' + payload.venue)}&body=${encodeURIComponent(body)}`;
+        return;
+      }
+
+      submit.disabled = true;
+      submit.textContent = 'Enviando…';
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error(String(res.status));
+        form.querySelectorAll<HTMLElement>(':scope > :not([data-ok])').forEach((el) => (el.hidden = true));
+        ok.hidden = false;
+        ok.focus();
+      } catch {
+        showError(`No se ha podido enviar. Vuelve a intentarlo o escríbeme a ${email}.`);
+        submit.disabled = false;
+        submit.textContent = 'Enviar mensaje';
+      }
+    });
+  });
+</script>
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: var(--space-5);
+    align-items: start;
+  }
+  .title {
+    font-size: var(--step-4);
+  }
+  .side p {
+    margin-top: var(--space-2);
+    font-size: var(--step-1);
+    line-height: 1.5;
+    color: var(--muted);
+  }
+  .direct {
+    list-style: none;
+    margin: var(--space-3) 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0.4rem;
+    font-weight: 650;
+    font-size: var(--step-1);
+  }
+
+  .form {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-radius: var(--radius-l);
+    background: var(--surface);
+    border: 2px solid var(--line);
+  }
+  .two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+  }
+  .field {
+    display: grid;
+    gap: 0.4rem;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+  }
+  label,
+  legend {
+    font-weight: 650;
+  }
+  legend {
+    padding: 0;
+    margin-bottom: 0.4rem;
+  }
+  .opt {
+    font-weight: 400;
+    color: var(--muted);
+  }
+  input:not([type='checkbox']),
+  textarea {
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.7rem 0.9rem;
+    border: 2px solid var(--line);
+    border-radius: var(--radius-s);
+    background: var(--paper);
+    color: var(--ink);
+    font: inherit;
+  }
+  input:focus,
+  textarea:focus {
+    border-color: var(--strong);
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--saffron) 55%, transparent);
+  }
+  textarea {
+    resize: vertical;
+  }
+  .checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.4rem;
+  }
+  .check {
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .check input {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-top: 0.2rem;
+    accent-color: var(--strong);
+    flex: none;
+  }
+  .consent {
+    font-size: var(--step--1);
+    color: var(--muted);
+  }
+  .hp {
+    position: absolute;
+    left: -9999px;
+  }
+  .error {
+    padding: 0.7rem 0.9rem;
+    border-radius: var(--radius-s);
+    background: color-mix(in srgb, var(--tomato) 14%, var(--surface));
+    color: var(--tomato);
+    font-weight: 600;
+  }
+  .form .btn {
+    justify-self: start;
+    min-width: 12rem;
+  }
+  .ok h3 {
+    font-size: var(--step-3);
+  }
+  .ok p {
+    margin-top: 0.5rem;
+    color: var(--muted);
+  }
+
+  @media (max-width: 900px) {
+    .grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-4);
+    }
+  }
+  @media (max-width: 560px) {
+    .two {
+      grid-template-columns: 1fr;
+    }
+    .form {
+      padding: var(--space-3);
+    }
+    .form .btn {
+      width: 100%;
+    }
+  }
+</style>

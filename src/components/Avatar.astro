@@ -1,0 +1,36 @@
+---
+import { person } from '../data/about';
+interface Props {
+  size?: string;
+}
+const { size = '7rem' } = Astro.props;
+---
+
+{
+  person.photo ? (
+    <img class="avatar" src={person.photo} alt={person.name} width="320" height="320" loading="lazy" style={`--size:${size}`} />
+  ) : (
+    <span class="avatar initial" aria-hidden="true" style={`--size:${size}`}>
+      {person.name.charAt(0)}
+    </span>
+  )
+}
+
+<style>
+  .avatar {
+    width: var(--size);
+    height: var(--size);
+    border-radius: var(--radius-l);
+    object-fit: cover;
+    flex: none;
+  }
+  .initial {
+    display: grid;
+    place-items: center;
+    background: var(--saffron);
+    color: var(--saffron-ink);
+    font-weight: 750;
+    font-size: calc(var(--size) * 0.5);
+    letter-spacing: -0.04em;
+  }
+</style>

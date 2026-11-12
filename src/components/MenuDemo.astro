@@ -1,0 +1,451 @@
+---
+/**
+ * Demo interactiva del hero: a la izquierda el panel del dueño,
+ * a la derecha la carta que ve el cliente en su móvil.
+ * Restaurante y platos inventados: es un ejemplo.
+ */
+const dishes = [
+  { id: 'croquetas', es: 'Croquetas caseras de jamón', en: 'Homemade ham croquettes', price: 9.5, allergens: ['gluten', 'huevo', 'leche'] },
+  { id: 'pulpo', es: 'Pulpo a la gallega', en: 'Galician-style octopus', price: 18, allergens: ['moluscos'] },
+  { id: 'tomate', es: 'Tomate de la huerta con ventresca', en: 'Garden tomato with tuna belly', price: 11, allergens: ['pescado'] },
+  { id: 'torreznos', es: 'Torreznos crujientes', en: 'Crispy pork belly bites', price: 7.5, allergens: [] as string[] },
+  { id: 'tarta', es: 'Tarta de queso al horno', en: 'Baked cheesecake', price: 6, allergens: ['gluten', 'huevo', 'leche'] },
+];
+
+const allergenLabel: Record<string, { es: string; en: string }> = {
+  gluten: { es: 'Gluten', en: 'Gluten' },
+  huevo: { es: 'Huevo', en: 'Egg' },
+  leche: { es: 'Leche', en: 'Milk' },
+  moluscos: { es: 'Moluscos', en: 'Molluscs' },
+  pescado: { es: 'Pescado', en: 'Fish' },
+};
+
+const eur = (n: number) => n.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+---
+
+<div class="demo" data-demo>
+  <div class="panel" role="group" aria-labelledby="demo-panel-title">
+    <p class="panel-title" id="demo-panel-title">Tu panel, en el móvil</p>
+
+    <div class="row">
+      <span id="lbl-agotado">Croquetas agotadas</span>
+      <button class="switch" role="switch" aria-checked="false" aria-labelledby="lbl-agotado" data-action="soldout">
+        <span class="knob"></span>
+      </button>
+    </div>
+
+    <div class="row">
+      <span id="lbl-precio">Menú del día</span>
+      <div class="stepper" role="group" aria-labelledby="lbl-precio">
+        <button type="button" data-action="price-down" aria-label="Bajar 50 céntimos">−</button>
+        <output data-price-out aria-live="polite">13,50 €</output>
+        <button type="button" data-action="price-up" aria-label="Subir 50 céntimos">+</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <span id="lbl-en">Carta en inglés</span>
+      <button class="switch" role="switch" aria-checked="false" aria-labelledby="lbl-en" data-action="lang">
+        <span class="knob"></span>
+      </button>
+    </div>
+
+    <p class="panel-note">Guardado. Tus clientes ya lo ven.</p>
+  </div>
+
+  <div class="phone" aria-label="Carta que ve el cliente">
+    <div class="screen" data-lang="es">
+      <div class="venue">
+        <p class="venue-name">Casa Brezo</p>
+        <p class="venue-sub"><span data-es>Carta</span><span data-en hidden>Menu</span></p>
+      </div>
+
+      <div class="filters" role="group" aria-label="Filtrar carta">
+        <button type="button" class="chip" aria-pressed="true" data-filter="all"><span data-es>Todo</span><span data-en hidden>All</span></button>
+        <button type="button" class="chip" aria-pressed="false" data-filter="gluten"><span data-es>Sin gluten</span><span data-en hidden>Gluten free</span></button>
+      </div>
+
+      <div class="set-menu">
+        <div>
+          <p class="set-name"><span data-es>Menú del día</span><span data-en hidden>Set lunch</span></p>
+          <p class="set-when"><span data-es>Lunes a viernes, 13:00 a 16:00</span><span data-en hidden>Mon to Fri, 1 to 4 pm</span></p>
+        </div>
+        <p class="set-price" data-price-view>13,50 €</p>
+      </div>
+
+      <p class="menu-section"><span data-es>Para compartir</span><span data-en hidden>To share</span></p>
+      <ul class="dishes">
+        {
+          dishes.map((d) => (
+            <li class="dish" data-dish={d.id} data-allergens={d.allergens.join(' ')}>
+              <div class="dish-main">
+                <p class="dish-name">
+                  <span data-es>{d.es}</span>
+                  <span data-en hidden>{d.en}</span>
+                </p>
+                <p class="dish-price">{eur(d.price)}</p>
+              </div>
+              <p class="soldout" hidden><span data-es>Agotado hoy</span><span data-en hidden>Sold out today</span></p>
+              {d.allergens.length > 0 && (
+                <ul class="allergens" aria-label="Alérgenos">
+                  {d.allergens.map((a) => (
+                    <li class={`al al-${a}`}>
+                      <span data-es>{allergenLabel[a].es}</span>
+                      <span data-en hidden>{allergenLabel[a].en}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-demo]').forEach((demo) => {
+    const screen = demo.querySelector<HTMLElement>('.screen')!;
+    const note = demo.querySelector<HTMLElement>('.panel-note')!;
+    const priceOut = demo.querySelector<HTMLOutputElement>('[data-price-out]')!;
+    const priceView = demo.querySelector<HTMLElement>('[data-price-view]')!;
+    let price = 13.5;
+    let flashTimer: number | undefined;
+
+    const eur = (n: number) =>
+      n.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+
+    const flash = (el: Element | null) => {
+      if (!el) return;
+      el.classList.remove('changed');
+      void (el as HTMLElement).offsetWidth;
+      el.classList.add('changed');
+      note.classList.add('show');
+      window.clearTimeout(flashTimer);
+      flashTimer = window.setTimeout(() => note.classList.remove('show'), 1800);
+    };
+
+    const toggle = (btn: HTMLElement) => {
+      const on = btn.getAttribute('aria-checked') !== 'true';
+      btn.setAttribute('aria-checked', String(on));
+      return on;
+    };
+
+    demo.addEventListener('click', (ev) => {
+      const target = (ev.target as HTMLElement).closest<HTMLElement>('[data-action], [data-filter]');
+      if (!target) return;
+
+      const action = target.dataset.action;
+      if (action === 'soldout') {
+        const on = toggle(target);
+        const dish = screen.querySelector<HTMLElement>('[data-dish="croquetas"]')!;
+        dish.classList.toggle('is-soldout', on);
+        dish.querySelector<HTMLElement>('.soldout')!.hidden = !on;
+        flash(dish);
+      } else if (action === 'price-up' || action === 'price-down') {
+        price = Math.min(25, Math.max(8, price + (action === 'price-up' ? 0.5 : -0.5)));
+        priceOut.value = eur(price);
+        priceView.textContent = eur(price);
+        flash(priceView.closest('.set-menu'));
+      } else if (action === 'lang') {
+        const en = toggle(target);
+        screen.dataset.lang = en ? 'en' : 'es';
+        screen.querySelectorAll<HTMLElement>('[data-es]').forEach((el) => (el.hidden = en));
+        screen.querySelectorAll<HTMLElement>('[data-en]').forEach((el) => (el.hidden = !en));
+        flash(screen.querySelector('.venue'));
+      } else if (target.dataset.filter) {
+        const glutenFree = target.dataset.filter === 'gluten';
+        screen.querySelectorAll<HTMLElement>('[data-filter]').forEach((chip) =>
+          chip.setAttribute('aria-pressed', String(chip === target)),
+        );
+        screen.querySelectorAll<HTMLElement>('[data-dish]').forEach((dish) => {
+          const hasGluten = (dish.dataset.allergens ?? '').split(' ').includes('gluten');
+          dish.hidden = glutenFree && hasGluten;
+        });
+      }
+    });
+  });
+</script>
+
+<style>
+  .demo {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 17rem) minmax(0, 19rem);
+    align-items: center;
+    justify-content: end;
+    gap: 0;
+  }
+
+  /* ---------- Panel del dueño ---------- */
+  .panel {
+    position: relative;
+    z-index: 2;
+    margin-right: -0.9rem;
+    margin-top: 13rem;
+    padding: 1.1rem 1.1rem 0.9rem;
+    background: var(--bottle);
+    color: var(--bottle-ink);
+    border-radius: var(--radius-m);
+    box-shadow: 0 18px 40px -18px color-mix(in srgb, var(--bottle) 70%, black);
+  }
+  .panel-title {
+    font-weight: 700;
+    font-size: var(--step-0);
+    margin-bottom: 0.4rem;
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-block: 0.65rem;
+    border-top: 1px solid color-mix(in srgb, var(--bottle-ink) 18%, transparent);
+    font-size: 0.95rem;
+    font-weight: 550;
+  }
+  .switch {
+    flex: none;
+    width: 3rem;
+    height: 1.75rem;
+    padding: 0.2rem;
+    border: 0;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--bottle-ink) 25%, transparent);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  .switch .knob {
+    display: block;
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 50%;
+    background: var(--bottle-ink);
+    transition: transform 0.2s ease;
+  }
+  .switch[aria-checked='true'] {
+    background: var(--saffron);
+  }
+  .switch[aria-checked='true'] .knob {
+    transform: translateX(1.25rem);
+    background: #14281f;
+  }
+  .stepper {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .stepper button {
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 50%;
+    border: 1.5px solid color-mix(in srgb, var(--bottle-ink) 45%, transparent);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .stepper button:hover {
+    border-color: var(--saffron);
+  }
+  .stepper output {
+    min-width: 4.4rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    font-weight: 650;
+  }
+  .panel-note {
+    margin-top: 0.4rem;
+    font-size: var(--step--1);
+    color: var(--saffron);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .panel-note:global(.show) {
+    opacity: 1;
+  }
+
+  /* ---------- Móvil del cliente ---------- */
+  .phone {
+    position: relative;
+    z-index: 1;
+    padding: 0.7rem;
+    background: #10211a;
+    border-radius: 2.6rem;
+    box-shadow: 0 30px 60px -30px rgba(10, 30, 22, 0.55);
+    outline: 1px solid var(--line);
+  }
+  .phone::before {
+    content: '';
+    position: absolute;
+    top: 1.15rem;
+    left: 50%;
+    width: 4.5rem;
+    height: 1.1rem;
+    translate: -50% 0;
+    background: #10211a;
+    border-radius: 999px;
+    z-index: 3;
+  }
+  .screen {
+    height: 34rem;
+    overflow: hidden;
+    padding: 2.6rem 1rem 1rem;
+    border-radius: 2rem;
+    background: #fbfaf6;
+    color: #1f2a24;
+  }
+  .venue {
+    padding-bottom: 0.7rem;
+  }
+  .venue-name {
+    font-size: 1.4rem;
+    font-weight: 750;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .venue-sub {
+    font-size: 0.85rem;
+    color: #5d6b63;
+  }
+  .filters {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 0.8rem;
+  }
+  .chip {
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    border: 1.5px solid #c9d2cc;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .chip[aria-pressed='true'] {
+    background: #1d4a3a;
+    border-color: #1d4a3a;
+    color: #fff;
+  }
+  .set-menu {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 0.8rem;
+    border-radius: 0.8rem;
+    background: #f1e4c2;
+  }
+  .set-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+  .set-when {
+    font-size: 0.75rem;
+    color: #5d6b63;
+  }
+  .set-price {
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .menu-section {
+    margin: 0.9rem 0 0.2rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #1d4a3a;
+  }
+  .dishes,
+  .allergens {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .dish {
+    padding-block: 0.55rem;
+    border-bottom: 1px solid #e6e9e4;
+  }
+  .dish-main {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.6rem;
+    font-size: 0.9rem;
+    line-height: 1.3;
+  }
+  .dish-name {
+    font-weight: 600;
+  }
+  .dish-price {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .allergens {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: 0.3rem;
+  }
+  .al {
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    background: #eef1ec;
+    color: #3d4a43;
+  }
+  .al-gluten { background: #f6e7c4; color: #6a4b05; }
+  .al-leche { background: #e3ecf6; color: #24476b; }
+  .al-huevo { background: #fbf0c9; color: #6b5304; }
+  .al-moluscos, .al-pescado { background: #dcefed; color: #1c5650; }
+
+  .soldout {
+    margin-top: 0.15rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #b83a27;
+  }
+  .dish:global(.is-soldout) .dish-main {
+    color: #8b958f;
+    text-decoration: line-through;
+  }
+
+  /* El único movimiento de la página: responde a lo que toca el visitante. */
+  :global(.changed) {
+    animation: changed 0.9s ease-out;
+  }
+  @keyframes changed {
+    0% { box-shadow: 0 0 0 0 rgba(232, 163, 23, 0.9); background-color: #fff2cf; }
+    100% { box-shadow: 0 0 0 10px rgba(232, 163, 23, 0); }
+  }
+
+  .panel-note {
+    min-height: 1.2em;
+  }
+
+  /* En móvil: la carta arriba y el panel montado sobre su parte baja,
+     para ver a la vez lo que tocas y lo que cambia. */
+  @media (max-width: 960px) {
+    .demo {
+      grid-template-columns: 1fr;
+      justify-items: center;
+      justify-content: stretch;
+    }
+    .phone {
+      order: 1;
+      width: min(100%, 19rem);
+    }
+    .screen {
+      height: 27rem;
+    }
+    .panel {
+      order: 2;
+      margin: -7rem 0 0;
+      width: min(100%, 21rem);
+    }
+  }
+</style>

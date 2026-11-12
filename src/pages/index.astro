@@ -1,0 +1,94 @@
+---
+import Base from '../layouts/Base.astro';
+import MenuDemo from '../components/MenuDemo.astro';
+import ModuleList from '../components/ModuleList.astro';
+import PackConfigurator from '../components/PackConfigurator.astro';
+import Process from '../components/Process.astro';
+import Pilot from '../components/Pilot.astro';
+import AboutTeaser from '../components/AboutTeaser.astro';
+import Faq from '../components/Faq.astro';
+import ContactForm from '../components/ContactForm.astro';
+import { site } from '../config/site';
+import { faqsFor } from '../data/faq';
+import { faqJsonLd } from '../lib/jsonld';
+
+const faqs = faqsFor('home');
+---
+
+<Base title={site.name} jsonLd={[faqJsonLd(faqs)]}>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap grid">
+      <div class="copy">
+        <h1 id="hero-title">Tu carta, tus reservas y tu web, al día desde el móvil</h1>
+        <p class="lead">
+          Para bares y restaurantes de {site.city} y alrededores. Cambias un precio, marcas un plato agotado o ves las reservas de la noche, y todo se actualiza al momento.
+        </p>
+        <div class="actions">
+          <a class="btn btn-primary" href="/contacto/">Pedir una demo con mi carta</a>
+          <a class="btn btn-ghost" href="#precios">Ver precios</a>
+        </div>
+        <p class="hint">Prueba la demo: toca los controles del panel y mira cómo cambia la carta del cliente.</p>
+      </div>
+      <MenuDemo />
+    </div>
+  </section>
+
+  <ModuleList />
+  <PackConfigurator />
+  <Process />
+  <Pilot />
+  <AboutTeaser />
+  <Faq items={faqs} />
+  <ContactForm />
+</Base>
+
+<style>
+  .hero {
+    padding-block: var(--space-5) var(--space-6);
+    overflow: hidden;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    gap: var(--space-4);
+    align-items: center;
+  }
+  h1 {
+    font-size: var(--step-5);
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    font-weight: 750;
+    max-width: 12ch;
+  }
+  .lead {
+    margin-top: var(--space-3);
+    font-size: var(--step-1);
+    line-height: 1.5;
+    max-width: 32rem;
+    color: var(--muted);
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: var(--space-4);
+  }
+  .hint {
+    margin-top: var(--space-3);
+    font-size: var(--step--1);
+    color: var(--muted);
+    max-width: 26rem;
+  }
+  @media (max-width: 960px) {
+    .grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-5);
+    }
+    h1 {
+      max-width: 16ch;
+    }
+    .hero {
+      padding-top: var(--space-4);
+    }
+  }
+</style>

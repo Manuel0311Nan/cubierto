@@ -1,0 +1,22 @@
+---
+import { site } from '../config/site';
+---
+
+<span class="logo">
+  <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
+    <rect x="1" y="1" width="30" height="30" rx="8" fill="var(--bottle)"></rect>
+    <path d="M9 10.5h14l-14 11h14" fill="none" stroke="var(--saffron)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"></path>
+  </svg>
+  <span>{site.name.toLowerCase()}</span>
+</span>
+
+<style>
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-weight: 750;
+    font-size: 1.3rem;
+    letter-spacing: -0.03em;
+  }
+</style>

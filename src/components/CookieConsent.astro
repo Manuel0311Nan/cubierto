@@ -1,0 +1,415 @@
+---
+/**
+ * Gestor de consentimiento de cookies, sin dependencias.
+ * - Los scripts de terceros se escriben como type="text/plain" y solo se
+ *   ejecutan cuando el visitante acepta su categoría.
+ * - Si no hay servicios activos en src/config/cookies.ts, no se renderiza nada.
+ */
+import {
+  activeServices,
+  activeCategories,
+  categories,
+  consentRequired,
+  CONSENT_VERSION,
+  CONSENT_MAX_AGE_DAYS,
+  CONSENT_STORAGE_KEY,
+  type CookieService,
+} from '../config/cookies';
+
+const loaders: Record<string, (id: string) => string> = {
+  ga4: (id) => `
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    window.gtag = gtag;
+    gtag('js', new Date());
+    gtag('config', ${JSON.stringify(id)});
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(${JSON.stringify(id)});
+    document.head.appendChild(s);`,
+  'meta-pixel': (id) => `
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+    document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', ${JSON.stringify(id)});
+    fbq('track', 'PageView');`,
+};
+
+const blocked = activeServices
+  .filter((s) => loaders[s.id])
+  .map((s: CookieService) => ({ id: s.id, category: s.category, code: loaders[s.id](s.key) }));
+
+const config = JSON.stringify({
+  key: CONSENT_STORAGE_KEY,
+  version: CONSENT_VERSION,
+  maxAgeMs: CONSENT_MAX_AGE_DAYS * 864e5,
+  categories: activeCategories,
+  cleanup: Object.fromEntries(activeCategories.map((c) => [c, activeServices.filter((s) => s.category === c).flatMap((s) => s.cleanup)])),
+});
+
+const categoryNames = activeCategories.map((c) => categories[c].name.toLowerCase());
+const summary =
+  categoryNames.length === 1 ? categoryNames[0] : `${categoryNames.slice(0, -1).join(', ')} y ${categoryNames.at(-1)}`;
+---
+
+{
+  consentRequired && (
+    <>
+      {blocked.map((b) => (
+        <script type="text/plain" data-consent={b.category} data-service={b.id} set:html={b.code} />
+      ))}
+
+      <div class="cc-banner" data-cc-banner data-cc-config={config} role="region" aria-labelledby="cc-title" hidden>
+        <div class="cc-text">
+          <p class="cc-title" id="cc-title">Tú decides sobre las cookies</p>
+          <p>
+            Usamos cookies de {summary} solo si nos das permiso. Las técnicas son necesarias para que la web funcione.
+            Más detalles en la <a href="/cookies/">política de cookies</a>.
+          </p>
+        </div>
+        <div class="cc-actions">
+          <button type="button" class="cc-btn" data-cc="reject">Rechazar</button>
+          <button type="button" class="cc-btn" data-cc="accept">Aceptar</button>
+          <button type="button" class="cc-link" data-cc="settings">Configurar</button>
+        </div>
+      </div>
+
+      <dialog class="cc-dialog" data-cc-dialog aria-labelledby="cc-dialog-title">
+        <form method="dialog" class="cc-form">
+          <h2 id="cc-dialog-title">Configurar cookies</h2>
+          <p class="cc-intro">Elige qué cookies aceptas. Puedes cambiarlo cuando quieras desde el enlace del pie de página.</p>
+
+          <fieldset class="cc-cat">
+            <legend class="visually-hidden">{categories.necessary.name}</legend>
+            <div class="cc-cat-head">
+              <span class="cc-cat-name">{categories.necessary.name}</span>
+              <span class="cc-always">Siempre activas</span>
+            </div>
+            <p>{categories.necessary.description}</p>
+          </fieldset>
+
+          {activeCategories.map((c) => (
+            <fieldset class="cc-cat">
+              <legend class="visually-hidden">{categories[c].name}</legend>
+              <label class="cc-cat-head">
+                <span class="cc-cat-name">{categories[c].name}</span>
+                <input class="cc-switch" type="checkbox" name={c} data-cc-category={c} />
+              </label>
+              <p>{categories[c].description}</p>
+              <p class="cc-services">
+                {activeServices
+                  .filter((s) => s.category === c)
+                  .map((s) => `${s.name} (${s.provider})`)
+                  .join(', ')}
+              </p>
+            </fieldset>
+          ))}
+
+          <div class="cc-dialog-actions">
+            <button type="button" class="cc-btn" data-cc="reject">Rechazar todas</button>
+            <button type="button" class="cc-btn" data-cc="save">Guardar selección</button>
+            <button type="button" class="cc-btn" data-cc="accept">Aceptar todas</button>
+          </div>
+        </form>
+      </dialog>
+    </>
+  )
+}
+
+<script>
+  type Consent = { v: number; date: number; categories: Record<string, boolean> };
+  type Config = {
+    key: string;
+    version: number;
+    maxAgeMs: number;
+    categories: string[];
+    cleanup: Record<string, string[]>;
+  };
+
+  const banner = document.querySelector<HTMLElement>('[data-cc-banner]');
+  const dialog = document.querySelector<HTMLDialogElement>('[data-cc-dialog]');
+
+  if (banner && dialog) {
+    const cfg = JSON.parse(banner.dataset.ccConfig!) as Config;
+    let memory: Consent | null = null; // por si el navegador bloquea el almacenamiento
+
+    const read = (): Consent | null => {
+      let c: Consent | null = memory;
+      try {
+        const raw = localStorage.getItem(cfg.key);
+        if (raw) c = JSON.parse(raw);
+      } catch {
+        /* almacenamiento no disponible */
+      }
+      if (!c || c.v !== cfg.version || Date.now() - c.date > cfg.maxAgeMs) return null;
+      return c;
+    };
+
+    const write = (c: Consent) => {
+      memory = c;
+      try {
+        localStorage.setItem(cfg.key, JSON.stringify(c));
+      } catch {
+        /* se mantiene en memoria durante esta visita */
+      }
+    };
+
+    const activate = (c: Consent) => {
+      document.querySelectorAll<HTMLScriptElement>('script[type="text/plain"][data-consent]').forEach((tpl) => {
+        if (!c.categories[tpl.dataset.consent!] || tpl.dataset.activated) return;
+        const s = document.createElement('script');
+        s.textContent = tpl.textContent;
+        tpl.dataset.activated = 'true';
+        tpl.after(s);
+      });
+    };
+
+    const deleteCookies = (prefixes: string[]) => {
+      const host = location.hostname;
+      const parts = host.split('.');
+      const domains = ['', host, '.' + host, parts.length > 1 ? '.' + parts.slice(-2).join('.') : ''];
+      document.cookie.split(';').forEach((pair) => {
+        const name = pair.split('=')[0].trim();
+        if (!prefixes.some((p) => name.startsWith(p))) return;
+        domains.forEach((d) => {
+          document.cookie = `${name}=; Max-Age=0; path=/${d ? '; domain=' + d : ''}`;
+        });
+      });
+    };
+
+    const save = (choice: Record<string, boolean>) => {
+      const previous = read();
+      const consent: Consent = { v: cfg.version, date: Date.now(), categories: choice };
+      write(consent);
+      banner.hidden = true;
+      if (dialog.open) dialog.close();
+
+      const revoked = cfg.categories.filter((c) => previous?.categories[c] && !choice[c]);
+      document.dispatchEvent(new CustomEvent('consent:change', { detail: consent }));
+      if (revoked.length) {
+        // Retirar el consentimiento: se borran sus cookies y se recarga sin esos scripts.
+        deleteCookies(revoked.flatMap((c) => cfg.cleanup[c] ?? []));
+        location.reload();
+        return;
+      }
+      activate(consent);
+    };
+
+    const all = (value: boolean) => Object.fromEntries(cfg.categories.map((c) => [c, value]));
+
+    const openSettings = () => {
+      const current = read();
+      dialog.querySelectorAll<HTMLInputElement>('[data-cc-category]').forEach((input) => {
+        input.checked = Boolean(current?.categories[input.dataset.ccCategory!]);
+      });
+      dialog.showModal();
+    };
+
+    document.addEventListener('click', (ev) => {
+      const el = (ev.target as HTMLElement).closest<HTMLElement>('[data-cc], [data-open-consent]');
+      if (!el) return;
+      if (el.matches('[data-open-consent]')) {
+        ev.preventDefault();
+        openSettings();
+        return;
+      }
+      const action = el.dataset.cc;
+      if (action === 'accept') save(all(true));
+      else if (action === 'reject') save(all(false));
+      else if (action === 'settings') openSettings();
+      else if (action === 'save') {
+        const choice: Record<string, boolean> = {};
+        dialog.querySelectorAll<HTMLInputElement>('[data-cc-category]').forEach((i) => (choice[i.dataset.ccCategory!] = i.checked));
+        save(choice);
+      }
+    });
+
+    // API mínima para otros scripts: window.zlConsent.has('analytics')
+    (window as unknown as { zlConsent: object }).zlConsent = {
+      get: read,
+      has: (category: string) => Boolean(read()?.categories[category]),
+      open: openSettings,
+    };
+
+    const existing = read();
+    if (existing) activate(existing);
+    else banner.hidden = false;
+  }
+</script>
+
+<style>
+  .cc-banner {
+    position: fixed;
+    z-index: 90;
+    left: 50%;
+    bottom: 1rem;
+    translate: -50% 0;
+    width: min(100% - 2rem, 58rem);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--space-3);
+    align-items: center;
+    padding: var(--space-3);
+    background: var(--surface);
+    color: var(--ink);
+    border: 2px solid var(--ink);
+    border-radius: var(--radius-m);
+    box-shadow: 0 20px 50px -25px rgba(10, 30, 22, 0.6);
+  }
+  .cc-banner[hidden] {
+    display: none;
+  }
+  .cc-title {
+    font-weight: 700;
+    font-size: var(--step-1);
+    margin-bottom: 0.25rem;
+  }
+  .cc-text p:not(.cc-title) {
+    font-size: var(--step--1);
+    color: var(--muted);
+  }
+  .cc-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    min-width: 17rem;
+  }
+  /* Aceptar y rechazar con el mismo peso visual, como pide la AEPD. */
+  .cc-btn {
+    min-height: 2.75rem;
+    padding: 0.55rem 1.1rem;
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+    background: var(--ink);
+    color: var(--paper);
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+  }
+  .cc-btn:hover {
+    background: color-mix(in srgb, var(--ink) 85%, var(--paper));
+  }
+  .cc-link {
+    grid-column: 1 / -1;
+    justify-self: center;
+    padding: 0.3rem 0.5rem;
+    border: 0;
+    background: none;
+    color: var(--ink);
+    font: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    cursor: pointer;
+  }
+
+  .cc-dialog {
+    width: min(100% - 2rem, 34rem);
+    max-height: min(90vh, 44rem);
+    padding: 0;
+    border: 2px solid var(--ink);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .cc-dialog::backdrop {
+    background: rgba(10, 25, 19, 0.55);
+  }
+  .cc-form {
+    padding: var(--space-3);
+  }
+  .cc-form h2 {
+    font-size: var(--step-2);
+  }
+  .cc-intro {
+    margin-top: 0.4rem;
+    color: var(--muted);
+    font-size: var(--step--1);
+  }
+  .cc-cat {
+    margin: var(--space-2) 0 0;
+    padding: var(--space-2) 0 0;
+    border: 0;
+    border-top: 1px solid var(--line);
+  }
+  .cc-cat-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+  }
+  .cc-cat-name {
+    font-weight: 700;
+  }
+  .cc-always {
+    font-size: var(--step--1);
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .cc-cat p {
+    margin-top: 0.3rem;
+    font-size: var(--step--1);
+    color: var(--muted);
+  }
+  .cc-services {
+    font-style: italic;
+  }
+  .cc-switch {
+    appearance: none;
+    flex: none;
+    width: 3rem;
+    height: 1.75rem;
+    margin: 0;
+    border-radius: 999px;
+    background: var(--line);
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  .cc-switch::after {
+    content: '';
+    position: absolute;
+    top: 0.2rem;
+    left: 0.2rem;
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 50%;
+    background: var(--surface);
+    transition: translate 0.2s ease;
+  }
+  .cc-switch:checked {
+    background: var(--strong);
+  }
+  .cc-switch:checked::after {
+    translate: 1.25rem 0;
+  }
+  .cc-dialog-actions {
+    position: sticky;
+    bottom: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin: var(--space-3) calc(-1 * var(--space-3)) calc(-1 * var(--space-3));
+    padding: var(--space-2) var(--space-3) var(--space-3);
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+  }
+
+  @media (max-width: 720px) {
+    .cc-banner {
+      grid-template-columns: 1fr;
+      bottom: 0.5rem;
+      gap: var(--space-2);
+      padding: var(--space-2);
+    }
+    .cc-actions {
+      min-width: 0;
+    }
+    .cc-dialog-actions {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

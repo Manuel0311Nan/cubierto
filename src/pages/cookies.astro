@@ -1,0 +1,114 @@
+---
+import Legal from '../layouts/Legal.astro';
+import { site } from '../config/site';
+import { activeServices, categories, consentRequired, necessaryStorage, CONSENT_MAX_AGE_DAYS } from '../config/cookies';
+
+const usesUmami = Boolean(site.umami.src && site.umami.websiteId);
+---
+
+<Legal title="Política de cookies" updated="noviembre de 2026">
+  <h2>Qué son las cookies</h2>
+  <p>
+    Son pequeños archivos que una web guarda en tu navegador para recordar información entre visitas. Algunas son necesarias para que la web funcione; otras sirven para medir visitas o mostrar publicidad, y esas solo se usan si das tu permiso.
+  </p>
+
+  {
+    consentRequired ? (
+      <>
+        <h2>Cookies que usa esta web</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Cookie</th>
+                <th scope="col">Tipo</th>
+                <th scope="col">Titular</th>
+                <th scope="col">Para qué</th>
+                <th scope="col">Duración</th>
+              </tr>
+            </thead>
+            <tbody>
+              {necessaryStorage.map((c) => (
+                <tr>
+                  <td><code>{c.name}</code></td>
+                  <td>{categories.necessary.name}</td>
+                  <td>{site.name}</td>
+                  <td>{c.purpose}</td>
+                  <td>{c.duration}</td>
+                </tr>
+              ))}
+              {activeServices.flatMap((s) =>
+                s.cookies.map((c) => (
+                  <tr>
+                    <td><code>{c.name}</code></td>
+                    <td>{categories[s.category].name}</td>
+                    <td>
+                      <a href={s.privacyUrl} rel="noopener">{s.provider}</a>
+                    </td>
+                    <td>{c.purpose} ({s.name})</td>
+                    <td>{c.duration}</td>
+                  </tr>
+                )),
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Cómo aceptarlas, rechazarlas o cambiar de opinión</h2>
+        <p>
+          La primera vez que entras te preguntamos. Hasta que no aceptas, no se carga ninguna cookie que no sea técnica. Puedes cambiar tu elección cuando quieras:
+        </p>
+        <p>
+          <button type="button" class="btn btn-ghost" data-open-consent>Configurar cookies</button>
+        </p>
+        <p>
+          Guardamos tu elección durante {CONSENT_MAX_AGE_DAYS} días; después te volvemos a preguntar. Si retiras el permiso, borramos esas cookies de tu navegador.
+        </p>
+        <p>
+          Algunas cookies de terceros implican transferencias de datos fuera del Espacio Económico Europeo. Puedes consultar las garantías de cada proveedor en su política de privacidad, enlazada en la tabla.
+        </p>
+      </>
+    ) : (
+      <>
+        <h2>Esta web no usa cookies que necesiten tu permiso</h2>
+        <p>
+          No instalamos cookies de analítica, de publicidad ni de terceros, por eso no te mostramos ningún aviso.
+          {usesUmami && ' Las visitas se miden con Umami, una herramienta que no usa cookies ni identifica a las personas.'}
+        </p>
+      </>
+    )
+  }
+
+  <h2>Almacenamiento para uso sin conexión</h2>
+  <p>
+    Tu navegador puede guardar una copia de las páginas que visitas para que la web cargue más rápido y se pueda abrir sin conexión. No contiene datos personales y puedes borrarla desde los ajustes de tu navegador.
+  </p>
+
+  <h2>Cómo borrar las cookies desde el navegador</h2>
+  <p>
+    También puedes bloquear o borrar cookies desde la configuración de tu navegador (Chrome, Safari, Firefox o Edge), en el apartado de privacidad. Si bloqueas todas, algunas webs pueden no funcionar bien.
+  </p>
+</Legal>
+
+<style>
+  .table-wrap {
+    overflow-x: auto;
+    margin-bottom: var(--space-2);
+  }
+  table {
+    width: 100%;
+    min-width: 38rem;
+    border-collapse: collapse;
+    font-size: var(--step--1);
+  }
+  th,
+  td {
+    text-align: left;
+    vertical-align: top;
+    padding: 0.6rem 0.8rem 0.6rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  th {
+    color: var(--muted);
+  }
+</style>

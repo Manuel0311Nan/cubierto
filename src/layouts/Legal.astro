@@ -1,0 +1,38 @@
+---
+import Base from './Base.astro';
+
+interface Props {
+  title: string;
+  updated: string;
+}
+const { title, updated } = Astro.props;
+---
+
+<Base title={title} description={`${title}.`}>
+  <section class="section">
+    <div class="wrap">
+      <article class="prose">
+        <h1>{title}</h1>
+        <p class="muted small">Última actualización: {updated}</p>
+        <div class="draft" role="note">
+          Texto base. Revisa los datos entre corchetes y valida el contenido con un asesor antes de publicar.
+        </div>
+        <slot />
+      </article>
+    </div>
+  </section>
+</Base>
+
+<style>
+  h1 {
+    font-size: var(--step-4);
+    margin-bottom: 0.4rem;
+  }
+  .draft {
+    margin-block: var(--space-3);
+    padding: 0.8rem 1rem;
+    border-left: 4px solid var(--saffron);
+    background: color-mix(in srgb, var(--saffron) 10%, var(--paper));
+    font-size: var(--step--1);
+  }
+</style>

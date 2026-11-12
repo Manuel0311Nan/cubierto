@@ -1,0 +1,247 @@
+@import '@fontsource-variable/bricolage-grotesque/wght.css';
+
+/* ---------- Tokens ---------- */
+:root {
+  --paper: #f7f8f5;
+  --surface: #ffffff;
+  --tile: #e4ece7;
+  --ink: #14281f;
+  --muted: #4b6158;
+  --line: #c9d6cf;
+  --bottle: #1d4a3a;
+  --bottle-ink: #f2f6f3;
+  --saffron: #e8a317;
+  --saffron-ink: #14281f;
+  --tomato: #b83a27;
+  --focus: #e8a317;
+  --strong: #1d4a3a; /* iconos y detalles de marca sobre fondo claro */
+
+  --font: 'Bricolage Grotesque Variable', 'Segoe UI', system-ui, sans-serif;
+
+  /* Escala 1.25 */
+  --step--1: 0.875rem;
+  --step-0: 1.0625rem;
+  --step-1: 1.25rem;
+  --step-2: 1.5625rem;
+  --step-3: clamp(1.75rem, 1.4rem + 1.4vw, 2.25rem);
+  --step-4: clamp(2.1rem, 1.5rem + 2.6vw, 3.1rem);
+  --step-5: clamp(2.5rem, 1.6rem + 4vw, 4.4rem);
+
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2.5rem;
+  --space-5: 4rem;
+  --space-6: clamp(4rem, 3rem + 5vw, 7.5rem);
+
+  --radius-s: 6px;
+  --radius-m: 14px;
+  --radius-l: 28px;
+
+  --wrap: 72rem;
+  --gutter: clamp(1rem, 0.5rem + 2.5vw, 2rem);
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: #0f1f19;
+    --surface: #152a22;
+    --tile: #1a3329;
+    --ink: #e9f0ec;
+    --muted: #a5bab0;
+    --line: #2d483d;
+    --bottle: #24594a;
+    --bottle-ink: #f2f6f3;
+    --saffron: #f0b23a;
+    --tomato: #ef7a63;
+    --strong: #f0b23a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme='dark'] {
+  --paper: #0f1f19;
+  --surface: #152a22;
+  --tile: #1a3329;
+  --ink: #e9f0ec;
+  --muted: #a5bab0;
+  --line: #2d483d;
+  --bottle: #24594a;
+  --bottle-ink: #f2f6f3;
+  --saffron: #f0b23a;
+  --tomato: #ef7a63;
+  --strong: #f0b23a;
+  color-scheme: dark;
+}
+
+/* ---------- Base ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: var(--step-0);
+  line-height: 1.6;
+  font-weight: 400;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+a {
+  color: inherit;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.2em;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+::selection {
+  background: var(--saffron);
+  color: var(--saffron-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* ---------- Layout ---------- */
+.wrap {
+  width: min(100% - 2 * var(--gutter), var(--wrap));
+  margin-inline: auto;
+}
+
+.section {
+  padding-block: var(--space-6);
+}
+
+.section-head {
+  max-width: 40rem;
+  margin-bottom: var(--space-4);
+}
+.section-head h2 {
+  font-size: var(--step-4);
+}
+.section-head p {
+  margin-top: var(--space-2);
+  color: var(--muted);
+  font-size: var(--step-1);
+  line-height: 1.5;
+}
+
+.prose {
+  max-width: 42rem;
+}
+.prose h2 {
+  font-size: var(--step-2);
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-1);
+}
+.prose p,
+.prose ul {
+  margin-bottom: var(--space-2);
+}
+.prose li + li {
+  margin-top: 0.35rem;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- Botones ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  padding: 0.7rem 1.35rem;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  font: inherit;
+  font-weight: 650;
+  font-size: var(--step-0);
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.btn-primary {
+  background: var(--saffron);
+  color: var(--saffron-ink);
+}
+.btn-primary:hover {
+  background: color-mix(in srgb, var(--saffron) 85%, var(--ink));
+}
+.btn-ghost {
+  border-color: currentColor;
+  color: inherit;
+  background: transparent;
+}
+.btn-ghost:hover {
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.link-arrowless {
+  font-weight: 650;
+}
+
+/* ---------- Utilidades ---------- */
+.muted {
+  color: var(--muted);
+}
+.small {
+  font-size: var(--step--1);
+}
