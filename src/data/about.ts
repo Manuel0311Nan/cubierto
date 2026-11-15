@@ -4,7 +4,7 @@
  */
 
 export const person = {
-  name: 'Manuel [Apellido]', // TODO
+  name: 'Manuel Alcázar',
   role: 'Desarrollador web',
   location: 'Alcalá de Henares',
   photo: '', // TODO: ruta a /public/manuel.jpg (vacío = se muestra la inicial)

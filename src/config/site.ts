@@ -6,17 +6,24 @@
 
 export const site = {
   name: 'Cubierto',
-  url: 'https://cubierto.com', // TODO: dominio definitivo (se usa en canonical, sitemap y JSON-LD)
+  url: 'https://cubierto.site', // se usa en canonical, sitemap y JSON-LD (cámbialo también en astro.config.mjs)
   locale: 'es_ES',
   tagline: 'Webs, carta QR y reservas para bares y restaurantes',
   description:
     'Web, carta digital con QR y reservas online para bares y restaurantes de Alcalá de Henares y el Corredor del Henares. Funcionando en una semana.',
   city: 'Alcalá de Henares',
   region: 'Comunidad de Madrid',
-  areaServed: ['Alcalá de Henares', 'Torrejón de Ardoz', 'Guadalajara', 'Corredor del Henares', 'Madrid'],
+  /** Zonas que atiendes (JSON-LD). `type` es el tipo schema.org: City para municipios, Place para comarcas. */
+  areaServed: [
+    { type: 'City', name: 'Alcalá de Henares' },
+    { type: 'City', name: 'Torrejón de Ardoz' },
+    { type: 'City', name: 'Guadalajara' },
+    { type: 'Place', name: 'Corredor del Henares' },
+    { type: 'AdministrativeArea', name: 'Comunidad de Madrid' },
+  ],
 
   contact: {
-    email: 'hola@cubierto.com', // TODO: email real
+    email: 'hola@cubierto.site', // TODO: email real
     phone: '', // TODO: teléfono en formato +34600000000 (vacío = no se muestra)
     whatsapp: '', // TODO: número para WhatsApp en formato 34600000000 (vacío = no se muestra)
     /**
@@ -35,10 +42,10 @@ export const site = {
 
   /** Datos legales para aviso legal y privacidad (LSSI y RGPD). */
   legal: {
-    holder: '[Nombre y apellidos o razón social]', // TODO
+    holder: 'Manuel Alcázar',
     taxId: '[NIF]', // TODO
     address: '[Dirección fiscal], Alcalá de Henares (Madrid)', // TODO
-    email: 'hola@cubierto.com', // TODO
+    email: 'hola@cubierto.site', // TODO
   },
 
   pilot: {
@@ -62,7 +69,7 @@ export const nav = [
   { href: '/web-para-restaurantes/', label: 'Web' },
   { href: '/carta-digital-qr/', label: 'Carta QR' },
   { href: '/reservas-online/', label: 'Reservas' },
-  { href: '/#precios', label: 'Precios' },
+  { href: '/precios/', label: 'Precios' },
   { href: '/sobre-mi/', label: 'Sobre mí' },
 ];
 
