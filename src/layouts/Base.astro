@@ -4,7 +4,7 @@ import fontUrl from '@fontsource-variable/bricolage-grotesque/files/bricolage-gr
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import CookieConsent from '../components/CookieConsent.astro';
-import { site } from '../config/site';
+import { site, pricing, formatEuros } from '../config/site';
 
 interface Props {
   title: string;
@@ -35,7 +35,8 @@ const organization = {
     addressRegion: site.region,
     addressCountry: 'ES',
   },
-  areaServed: site.areaServed.map((name) => ({ '@type': 'City', name })),
+  areaServed: site.areaServed.map(({ type, name }) => ({ '@type': type, name })),
+  priceRange: `Desde ${formatEuros(Math.min(...Object.values(pricing.monthly)))}/mes`,
   knowsAbout: ['Páginas web para restaurantes', 'Carta digital con QR', 'Reservas online para restaurantes'],
 };
 
@@ -50,13 +51,13 @@ const umami = site.umami;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonical} />
-    {noindex && <meta name="robots" content="noindex" />}
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
 
     <link rel="preload" href={fontUrl} as="font" type="font/woff2" crossorigin />
 
     <meta name="theme-color" content="#1d4a3a" />
     <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
 

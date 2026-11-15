@@ -6,7 +6,10 @@ import { activeServices, categories, consentRequired, necessaryStorage, CONSENT_
 const usesUmami = Boolean(site.umami.src && site.umami.websiteId);
 ---
 
-<Legal title="Política de cookies" updated="noviembre de 2026">
+<Legal
+  title="Política de cookies"
+  description={`Qué cookies y qué almacenamiento usa la web de ${site.name}, para qué sirven y cómo borrarlos desde tu navegador.`}
+  updated="noviembre de 2026">
   <h2>Qué son las cookies</h2>
   <p>
     Son pequeños archivos que una web guarda en tu navegador para recordar información entre visitas. Algunas son necesarias para que la web funcione; otras sirven para medir visitas o mostrar publicidad, y esas solo se usan si das tu permiso.

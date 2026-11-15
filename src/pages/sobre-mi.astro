@@ -4,7 +4,7 @@ import Avatar from '../components/Avatar.astro';
 import ContactForm from '../components/ContactForm.astro';
 import { person, publishedExperience, publishedEducation, displayName } from '../data/about';
 import { site } from '../config/site';
-import { breadcrumbJsonLd } from '../lib/jsonld';
+import { breadcrumbJsonLd, personId } from '../lib/jsonld';
 
 const sameAs = [person.linkedin, person.github].filter(Boolean);
 const personLd = {
@@ -12,6 +12,7 @@ const personLd = {
   '@type': 'ProfilePage',
   mainEntity: {
     '@type': 'Person',
+    '@id': personId,
     name: displayName,
     jobTitle: person.role,
     worksFor: { '@id': `${site.url}/#negocio` },
@@ -28,7 +29,7 @@ const sections = [
 ---
 
 <Base
-  title="Sobre mí"
+  title={`${displayName}, ${person.role.toLowerCase()} en Alcalá`}
   description={`${displayName}, ${person.role.toLowerCase()} en ${person.location}. Quién está detrás de ${site.name} y cómo trabajo con bares y restaurantes.`}
   jsonLd={[personLd, breadcrumbJsonLd([{ name: 'Sobre mí', path: '/sobre-mi/' }])]}
 >
