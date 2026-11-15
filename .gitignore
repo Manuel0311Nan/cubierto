@@ -45,3 +45,7 @@ next-env.d.ts
 
 # copias sueltas que puede dejar la app de Claude
 /Claude outputs/
+
+# astro: salida del build y tipos generados
+/dist/
+/.astro/
