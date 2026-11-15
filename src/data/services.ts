@@ -12,18 +12,20 @@ export interface ServicePageData {
   beforeAfter: Array<{ before: string; after: string }>;
   features: Array<{ title: string; text: string }>;
   included: string[];
+  /** Título del formulario de contacto al final de la página y de sus guías. */
+  contactHeading: string;
 }
 
 export const services: Record<ModuleKey, ServicePageData> = {
   carta: {
     key: 'carta',
     path: '/carta-digital-qr/',
-    seoTitle: 'Carta digital con QR para restaurantes en Alcalá de Henares',
+    seoTitle: 'Carta digital QR para restaurantes en Alcalá',
     seoDescription:
       'Carta digital con QR para tu bar o restaurante: alérgenos obligatorios, menú del día, platos agotados al momento y traducción a otros idiomas. Lista en un día.',
     h1: 'Carta digital con QR para tu bar o restaurante',
     intro:
-      'Tus clientes escanean el QR de la mesa y ven tu carta en su móvil, en su idioma y con los alérgenos claros. Tú la cambias desde el tuyo en segundos, sin reimprimir nada.',
+      'Tus clientes escanean el QR de la mesa y ven tu carta o tu menú en su móvil, en su idioma y con los alérgenos claros. Tú la cambias desde el tuyo en segundos, sin reimprimir nada.',
     beforeAfter: [
       { before: 'Cambias un precio y toca reimprimir todas las cartas.', after: 'Lo cambias en el móvil y ya está publicado.' },
       { before: 'El camarero va mesa por mesa avisando de lo que se ha acabado.', after: 'Marcas el plato como agotado y la carta lo muestra al momento.' },
@@ -39,16 +41,17 @@ export const services: Record<ModuleKey, ServicePageData> = {
       { title: 'Rápida en cualquier móvil', text: 'Carga en menos de dos segundos con datos móviles y sin instalar nada. Sin cookies ni registros para tus clientes.' },
     ],
     included: ['Varias cartas: carta, menú del día, bebidas, postres', 'Fotos de los platos', 'Hasta 5 idiomas', 'QR general y por mesa', 'Cambios ilimitados por tu parte'],
+    contactHeading: '¿Te enseño tu carta en digital?',
   },
   reservas: {
     key: 'reservas',
     path: '/reservas-online/',
-    seoTitle: 'Reservas online para restaurantes sin comisiones por comensal',
+    seoTitle: 'Reservas online para restaurantes en Alcalá',
     seoDescription:
       'Reservas online para tu restaurante desde tu web, Instagram y Google: confirmación y recordatorio automáticos, vista de sala y sin dobles reservas.',
     h1: 'Reservas online para tu restaurante, sin comisión por comensal',
     intro:
-      'Tus clientes reservan a cualquier hora en menos de un minuto. Tú ves el servicio completo en una pantalla, recibes cada reserva en el móvil y el sistema nunca acepta más gente de la que cabe.',
+      'Un programa de reservas para tu restaurante o bar: tus clientes reservan a cualquier hora en menos de un minuto. Tú ves el servicio completo en una pantalla, recibes cada reserva en el móvil y el sistema nunca acepta más gente de la que cabe.',
     beforeAfter: [
       { before: 'El teléfono suena en mitad del servicio para reservar.', after: 'La mayoría reserva online, a cualquier hora.' },
       { before: 'La libreta de reservas, tachones y alguna doble reserva.', after: 'Una vista del día clara, en tablet o móvil, para todo el equipo.' },
@@ -64,11 +67,12 @@ export const services: Record<ModuleKey, ServicePageData> = {
       { title: 'Tus clientes, tus datos', text: 'Ficha de cada cliente con sus visitas y notas. Los datos son tuyos y puedes exportarlos cuando quieras.' },
     ],
     included: ['Plano de tu sala con el estado de cada mesa', 'Turnos, capacidades y días cerrados', 'Emails de confirmación y recordatorio', 'Botón para tu web e Instagram', 'Lista de espera', 'Usuarios para tu equipo'],
+    contactHeading: '¿Te enseño cómo reservarían tus clientes?',
   },
   web: {
     key: 'web',
     path: '/web-para-restaurantes/',
-    seoTitle: 'Diseño de páginas web para restaurantes con mantenimiento',
+    seoTitle: 'Páginas web para restaurantes en Alcalá',
     seoDescription:
       'Página web para tu restaurante o bar, rápida y preparada para salir en Google, con dominio propio, mantenimiento incluido y editable por ti desde el móvil.',
     h1: 'Página web para tu restaurante, con mantenimiento incluido',
@@ -89,5 +93,6 @@ export const services: Record<ModuleKey, ServicePageData> = {
       { title: 'Cuántos te visitan, cada mes', text: 'Un resumen mensual con visitas y cuántos pulsaron "Llamar", "Reservar" o "Ver carta".' },
     ],
     included: ['Diseño adaptado a tu local', 'Dominio, hosting y certificado SSL', 'Copias de seguridad diarias', 'Cambios pequeños cada mes', 'Informe mensual de visitas'],
+    contactHeading: '¿Te enseño cómo quedaría tu web?',
   },
 };

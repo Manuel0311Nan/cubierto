@@ -4,7 +4,10 @@ import { site } from '../config/site';
 const l = site.legal;
 ---
 
-<Legal title="Política de privacidad" updated="noviembre de 2026">
+<Legal
+  title="Política de privacidad"
+  description={`Cómo trata ${site.name} los datos que envías por el formulario: para qué se usan, base legal, cuánto se guardan y cómo ejercer tus derechos.`}
+  updated="noviembre de 2026">
   <h2>Responsable del tratamiento</h2>
   <p>{l.holder}, NIF {l.taxId}, {l.address}. Contacto: <a href={`mailto:${l.email}`}>{l.email}</a>.</p>
 

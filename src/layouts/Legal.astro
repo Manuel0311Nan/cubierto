@@ -3,12 +3,14 @@ import Base from './Base.astro';
 
 interface Props {
   title: string;
+  /** Descripción para buscadores (máx. 160 caracteres). */
+  description: string;
   updated: string;
 }
-const { title, updated } = Astro.props;
+const { title, description, updated } = Astro.props;
 ---
 
-<Base title={title} description={`${title}.`}>
+<Base title={title} description={description}>
   <section class="section">
     <div class="wrap">
       <article class="prose">

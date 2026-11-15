@@ -2,9 +2,9 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
-// Cambia `site` cuando tengas el dominio definitivo (también en src/config/site.ts).
+// Si cambias el dominio (también en src/config/site.ts).
 export default defineConfig({
-  site: 'https://cubierto.com',
+  site: 'https://cubierto.site',
   trailingSlash: 'always',
   integrations: [
     sitemap({

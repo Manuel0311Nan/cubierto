@@ -94,7 +94,7 @@ const wa = site.contact.whatsapp;
       <button class="btn btn-primary" type="submit" data-submit>Enviar mensaje</button>
 
       <div class="ok" data-ok hidden tabindex="-1">
-        <h3>Mensaje enviado</h3>
+        <p class="ok-title">Mensaje enviado</p>
         <p>Gracias. Te escribo o te llamo en menos de 24 horas laborables.</p>
       </div>
     </form>
@@ -315,7 +315,11 @@ const wa = site.contact.whatsapp;
     justify-self: start;
     min-width: 12rem;
   }
-  .ok h3 {
+  .ok .ok-title {
+    margin: 0;
+    color: var(--ink);
+    font-weight: 700;
+    line-height: 1.15;
     font-size: var(--step-3);
   }
   .ok p {
