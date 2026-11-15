@@ -1,11 +1,34 @@
 ---
 import { site } from '../config/site';
+
+interface Props {
+  /** `brand`: verde sobre fondo claro (cabecera). `light`: toma el color del texto (pie sobre verde). */
+  tone?: 'brand' | 'light';
+}
+const { tone = 'brand' } = Astro.props;
 ---
 
-<span class="logo">
-  <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
-    <rect x="1" y="1" width="30" height="30" rx="8" fill="var(--bottle)"></rect>
-    <path d="M9 10.5h14l-14 11h14" fill="none" stroke="var(--saffron)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"></path>
+<span class:list={['logo', tone]}>
+  <!-- Símbolo de Cubierto: marco abierto, tenedor que lo cierra y hoja azafrán. Originales en brand/. -->
+  <svg viewBox="0 0 100 110" width="29" height="32" aria-hidden="true">
+    <path
+      class="stroke"
+      d="M94.5,54 V19.5 A14,14 0 0 0 80.5,5.5 H19.5 A14,14 0 0 0 5.5,19.5 V90.5 A14,14 0 0 0 19.5,104.5 H33 A14,14 0 0 0 47,90.5 V62"
+      fill="none"
+      stroke-width="11"
+      stroke-linecap="round"
+      stroke-linejoin="round"></path>
+    <g class="fill">
+      <rect x="34" y="26" width="6" height="20" rx="1.6"></rect>
+      <rect x="44.25" y="26" width="6" height="20" rx="1.6"></rect>
+      <rect x="54.5" y="26" width="6" height="20" rx="1.6"></rect>
+      <path d="M34,42 H60.5 V47 C60.5,54.5 56.5,58.6 52.5,61 V64 H41.5 V61 C37.5,58.6 34,54.5 34,47 Z"></path>
+    </g>
+    <path
+      class="leaf"
+      fill-rule="evenodd"
+      d="M61.5,90.5 A19,19 0 0 1 80.5,71.5 H97.6 A2.4,2.4 0 0 1 100,73.9 V91 A19,19 0 0 1 81,110 H63.9 A2.4,2.4 0 0 1 61.5,107.6 Z M73.5,91.1 A7.6,7.6 0 0 1 81.1,83.5 H87 A1,1 0 0 1 88,84.5 V90.4 A7.6,7.6 0 0 1 80.4,98 H74.5 A1,1 0 0 1 73.5,97 Z"
+    ></path>
   </svg>
   <span>{site.name.toLowerCase()}</span>
 </span>
@@ -14,9 +37,28 @@ import { site } from '../config/site';
   .logo {
     display: inline-flex;
     align-items: center;
-    gap: 0.55rem;
-    font-weight: 750;
+    gap: 0.45rem;
+    font-weight: 800;
     font-size: 1.3rem;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+  .logo svg {
+    flex: none;
+  }
+  .brand {
+    color: var(--logo);
+  }
+  .light {
+    color: inherit;
+  }
+  .stroke {
+    stroke: currentColor;
+  }
+  .fill {
+    fill: currentColor;
+  }
+  .leaf {
+    fill: var(--saffron);
   }
 </style>

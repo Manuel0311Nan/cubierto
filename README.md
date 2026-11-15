@@ -41,7 +41,7 @@ Todo el contenido está en datos, no repartido por los componentes:
 - [ ] Apellido, foto (`public/manuel.jpg` → `person.photo`), años de experiencia y titulación en `src/data/about.ts`
 - [ ] Datos legales (titular, NIF, dirección) y revisión de `aviso-legal`, `privacidad`, `cookies`; después, quita el aviso amarillo de borrador de `src/layouts/Legal.astro`
 - [ ] Confirmar precios y la oferta del piloto
-- [ ] Si cambias colores o logo: `npm run icons` regenera los iconos de la PWA; `public/og.png` es la imagen para redes
+- [ ] Logo: los originales están en `brand/`. Si cambias el símbolo, actualiza también `src/components/Logo.astro` y ejecuta `npm run icons` para regenerar los iconos de la PWA. `public/og.png` es la imagen para redes
 
 ## Formulario de contacto
 
@@ -94,7 +94,8 @@ src/
                             # /sobre-mi/ · /contacto/ · legales · /offline/ · 404 · robots.txt
 public/
   sw.js                     # service worker propio (sin dependencias)
-  manifest.webmanifest, icons/, favicon.svg, og.png
+  manifest.webmanifest, icons/, favicon.svg, favicon.ico, og.png
+brand/                      # logo de Cubierto: SVG originales y PNG para emails (no se publica)
 ```
 
 ## SEO incluido

@@ -36,7 +36,7 @@ npm run dev        # http://localhost:4321 (el service worker no se registra en 
 npm run build      # genera dist/
 npm run preview    # sirve dist/; aquí sí funciona la PWA
 npm run check      # astro check (tipos)
-npm run icons      # regenera los iconos PWA desde el logo
+npm run icons      # regenera los iconos PWA desde brand/
 ```
 
 Variables (`.env`, ver `.env.example`): `PUBLIC_CONTACT_ENDPOINT`, `PUBLIC_UMAMI_SRC`, `PUBLIC_UMAMI_WEBSITE_ID`, `PUBLIC_GA_MEASUREMENT_ID`, `PUBLIC_META_PIXEL_ID`.
@@ -52,6 +52,7 @@ src/
     services.ts           # páginas de servicio: SEO, antes/después, funcionalidades
     faq.ts                # preguntas y en qué páginas salen
     about.ts              # persona, experiencia y formación (se publica solo lo completo)
+  content/guias/*.md      # guías (artículos); esquema en src/content.config.ts, URL = nombre del archivo
   lib/jsonld.ts           # generadores schema.org (FAQPage, Service, BreadcrumbList)
   layouts/
     Base.astro            # <head>, SEO, JSON-LD de negocio, header/footer, cookies, registro SW
@@ -59,8 +60,9 @@ src/
     Legal.astro           # páginas legales (lleva aviso de borrador)
   components/             # un componente = marcado + <script> + <style> con scope
   pages/                  # rutas; las de servicio son una línea que llama a ServicePage
-public/                   # sw.js, manifest, iconos, og.png, favicon.svg
-scripts/generate-assets.mjs
+public/                   # sw.js, manifest, iconos, og.png, favicon.svg, favicon.ico
+brand/                    # logo: SVG originales (símbolo, nombre, logo completo, iconos) y PNG para emails
+scripts/generate-assets.mjs  # iconos PWA desde brand/*.svg
 ```
 
 ## 5. Reglas de contenido
@@ -96,6 +98,7 @@ scripts/generate-assets.mjs
 - `title` y `description` propios vía props de `Base` (descripción ≤ 160 caracteres).
 - Un `<h1>` que contenga la búsqueda objetivo de la página.
 - JSON-LD con `lib/jsonld.ts`: `Service` + `BreadcrumbList` + `FAQPage` en servicios; `ProfilePage` en sobre mí. `Base` ya añade `ProfessionalService`.
+- Guías en `src/content/guias/`: cada una con `sources` (fuentes reales), `service` (a qué servicio lleva) y respuesta directa en el primer párrafo. Llevan `Article` + `BreadcrumbList` y salen solas en `/guias/` y en "Guías relacionadas" de su servicio. Nada de datos sin fuente.
 - Páginas que no deben indexarse (`/offline/`, `404`): prop `noindex` y excluidas del sitemap en `astro.config.mjs`.
 - Si cambias el dominio, cámbialo en **`site.ts` y `astro.config.mjs`**.
 - Nuevas páginas por zona (p. ej. `/torrejon-de-ardoz/`) solo con contenido propio real, nunca duplicando texto cambiando el nombre de la ciudad.
