@@ -1,4 +1,5 @@
 ---
+import { getCollection } from 'astro:content';
 import Base from './Base.astro';
 import ModuleIcon from '../components/ModuleIcon.astro';
 import Faq from '../components/Faq.astro';
@@ -18,9 +19,16 @@ const mod = modules.find((m) => m.key === s.key)!;
 const others = modules.filter((m) => m.key !== s.key);
 const faqs = faqsFor(s.key);
 const price = pricing.monthly[s.key];
+const guias = await getCollection('guias', ({ data }) => !data.draft && data.service === s.key);
 
 const jsonLd = [
-  serviceJsonLd({ name: mod.name, description: s.seoDescription, path: s.path, price }),
+  serviceJsonLd({
+    name: mod.name,
+    description: s.seoDescription,
+    path: s.path,
+    price,
+    setupFrom: s.key === 'web' ? pricing.webSetupFrom : undefined,
+  }),
   breadcrumbJsonLd([{ name: mod.name, path: s.path }]),
   faqJsonLd(faqs),
 ];
@@ -38,7 +46,7 @@ const jsonLd = [
           <p class="lead">{s.intro}</p>
           <div class="actions">
             <a class="btn btn-primary" href="#contacto">Pedir una demo</a>
-            <a class="btn btn-ghost" href="/#precios">Combinar con otros módulos</a>
+            <a class="btn btn-ghost" href="/precios/">Ver todos los precios</a>
           </div>
         </div>
         <aside class="price-card" aria-label="Precio">
@@ -116,8 +124,25 @@ const jsonLd = [
     </div>
   </section>
 
+  {
+    guias.length > 0 && (
+      <section class="section guides" aria-labelledby="guides-title">
+        <div class="wrap">
+          <h2 id="guides-title">Guías relacionadas</h2>
+          <ul>
+            {guias.map((g) => (
+              <li>
+                <a href={`/guias/${g.id}/`}>{g.data.title}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+
   <Faq items={faqs} />
-  <ContactForm preselect={s.key} heading={`¿Te enseño ${s.key === 'web' ? 'cómo quedaría tu web' : s.key === 'carta' ? 'tu carta en digital' : 'cómo reservarían tus clientes'}?`} />
+  <ContactForm preselect={s.key} heading={s.contactHeading} />
 </Base>
 
 <style>
@@ -261,6 +286,17 @@ const jsonLd = [
     color: var(--muted);
   }
 
+  .guides ul {
+    margin: 0;
+    padding-left: 1.2rem;
+    display: grid;
+    gap: 0.5rem;
+    font-size: var(--step-1);
+    font-weight: 600;
+  }
+  .guides h2 {
+    margin-bottom: var(--space-2);
+  }
   .others {
     padding-top: 0;
   }

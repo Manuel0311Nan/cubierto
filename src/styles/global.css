@@ -15,6 +15,7 @@
   --tomato: #b83a27;
   --focus: #e8a317;
   --strong: #1d4a3a; /* iconos y detalles de marca sobre fondo claro */
+  --logo: #1d4a3a; /* marco y tenedor del logo; la hoja siempre va en --saffron */
 
   --font: 'Bricolage Grotesque Variable', 'Segoe UI', system-ui, sans-serif;
 
@@ -57,6 +58,7 @@
     --saffron: #f0b23a;
     --tomato: #ef7a63;
     --strong: #f0b23a;
+    --logo: #f2f6f3;
     color-scheme: dark;
   }
 }
@@ -72,6 +74,7 @@
   --saffron: #f0b23a;
   --tomato: #ef7a63;
   --strong: #f0b23a;
+  --logo: #f2f6f3;
   color-scheme: dark;
 }
 
@@ -189,6 +192,18 @@ a {
 }
 .prose li + li {
   margin-top: 0.35rem;
+}
+.prose ol {
+  margin-bottom: var(--space-2);
+  padding-left: 1.4rem;
+}
+.prose h3 {
+  font-size: var(--step-1);
+  margin-top: var(--space-3);
+  margin-bottom: var(--space-1);
+}
+.prose a {
+  font-weight: 600;
 }
 
 .visually-hidden {
