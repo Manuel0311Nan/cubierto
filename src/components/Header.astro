@@ -25,7 +25,7 @@ const path = Astro.url.pathname;
       </ul>
     </nav>
 
-    <a class="btn btn-primary cta" href="/contacto/">Pedir una demo</a>
+    <a class="btn btn-primary cta" href="/contacto/" data-umami-event="pedir-demo" data-umami-event-lugar="cabecera">Pedir una demo</a>
 
     <details class="mobile">
       <summary aria-label="Abrir menú">
@@ -42,7 +42,7 @@ const path = Astro.url.pathname;
               </li>
             ))
           }
-          <li><a class="btn btn-primary" href="/contacto/">Pedir una demo</a></li>
+          <li><a class="btn btn-primary" href="/contacto/" data-umami-event="pedir-demo" data-umami-event-lugar="menu-movil">Pedir una demo</a></li>
         </ul>
       </nav>
     </details>

@@ -51,7 +51,8 @@ export const site = {
   pilot: {
     enabled: true,
     spots: 3, // locales que buscas para el piloto
-    discountText: 'Primeros 3 meses a mitad de precio', // TODO: confirmar oferta
+    freeMonths: 1, // meses de cuota gratis al empezar
+    webSetup: 299, // alta de la web para los locales del piloto (precio normal: pricing.webSetupFrom)
   },
 } as const;
 
@@ -61,7 +62,7 @@ export type ModuleKey = 'web' | 'carta' | 'reservas';
 export const pricing = {
   monthly: { web: 39, carta: 24, reservas: 44 } satisfies Record<ModuleKey, number>,
   pack: 79, // los tres módulos juntos
-  webSetupFrom: 600, // alta de la web, pago único
+  webSetupFrom: 499, // alta de la web, pago único
   vatNote: 'Precios sin IVA. Sin permanencia: das de baja un módulo cuando quieras.',
 };
 
