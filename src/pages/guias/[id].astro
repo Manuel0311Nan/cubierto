@@ -50,8 +50,14 @@ const jsonLd = [
           <div>
             <h2 id="cta-title">{mod.name} para tu local</h2>
             <p>{service.intro}</p>
-            <p class="price">Desde {formatEuros(pricing.monthly[d.service])} al mes, sin permanencia.</p>
-            <a class="btn btn-primary" href={service.path}>Ver cómo funciona</a>
+            <p class="price">
+              {formatEuros(pricing.monthly[d.service])} al mes
+              {d.service === 'web' && <> + alta desde {formatEuros(pricing.webSetupFrom)}, pago único</>}. Sin permanencia.
+            </p>
+            <div class="cta-actions">
+              <a class="btn btn-primary" href={service.path}>Ver cómo funciona</a>
+              <a class="cta-link" href="/precios/">Ver todos los precios</a>
+            </div>
           </div>
         </aside>
 
@@ -110,8 +116,16 @@ const jsonLd = [
     font-weight: 650;
     opacity: 1;
   }
-  .cta .btn {
+  .cta-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) var(--space-3);
     margin-top: var(--space-2);
+  }
+  .cta-link {
+    color: var(--bottle-ink);
+    font-weight: 650;
   }
   .sources ul {
     font-size: var(--step--1);
