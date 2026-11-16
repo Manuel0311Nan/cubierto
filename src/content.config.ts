@@ -20,7 +20,7 @@ const guias = defineCollection({
     updated: z.coerce.date().optional(),
     /** Servicio al que lleva la guía: aparece la llamada a la acción y se enlaza desde su página. */
     service: z.enum(['web', 'carta', 'reservas']),
-    sources: z.array(z.object({ name: z.string(), url: z.string().url() })).min(1),
+    sources: z.array(z.object({ name: z.string(), url: z.url() })).min(1),
     draft: z.boolean().default(false),
   }),
 });

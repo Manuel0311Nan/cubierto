@@ -188,6 +188,8 @@ const wa = site.contact.whatsapp;
         if (!res.ok) throw new Error(String(res.status));
         form.querySelectorAll<HTMLElement>(':scope > :not([data-ok])').forEach((el) => (el.hidden = true));
         ok.hidden = false;
+        // Objetivo de conversión en Umami (si está cargado; sin cookies).
+        (window as any).umami?.track?.('contacto-enviado', { origen: payload.source, interes: payload.interest.join(',') });
         ok.focus();
       } catch {
         showError(`No se ha podido enviar. Vuelve a intentarlo o escríbeme a ${email}.`);
