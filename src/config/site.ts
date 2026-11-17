@@ -27,7 +27,7 @@ export const site = {
     phone: '', // TODO: teléfono en formato +34600000000 (vacío = no se muestra)
     whatsapp: '', // TODO: número para WhatsApp en formato 34600000000 (vacío = no se muestra)
     /**
-     * Endpoint que recibe el formulario (por ejemplo un webhook de n8n).
+     * Endpoint que recibe el formulario: /api/contacto/ (src/pages/api/contacto.ts).
      * Se lee de la variable PUBLIC_CONTACT_ENDPOINT. Sin valor, el formulario
      * ofrece enviar el mensaje por email.
      */

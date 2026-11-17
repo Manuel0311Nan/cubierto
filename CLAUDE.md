@@ -12,13 +12,14 @@ Web comercial de **Cubierto** para vender a bares y restaurantes de Alcalá de H
 | Carta digital con QR | `carta` | `/carta-digital-qr/` |
 | Reservas online | `reservas` | `/reservas-online/` |
 
-Su único trabajo es **posicionar en Google y conseguir contactos** (formulario → n8n). No es la plataforma: el producto real (multi-tenant, Next.js) vive en otro repositorio con sus specs. Los precios y lo que se promete aquí deben coincidir con esas specs.
+Su único trabajo es **posicionar en Google y conseguir contactos** (formulario → `/api/contacto/` → email por Resend). No es la plataforma: el producto real (multi-tenant, Next.js) vive en otro repositorio con sus specs. Los precios y lo que se promete aquí deben coincidir con esas specs.
 
 Público: dueños y encargados de hostelería, poco técnicos, leyendo desde el móvil.
 
 ## 2. Stack
 
-- **Astro 7**, salida 100 % estática (`output: "static"`), `trailingSlash: "always"`
+- **Astro 7**, salida estática (`output: "static"`), `trailingSlash: "always"`. **Única excepción:** `src/pages/api/contacto.ts` (`prerender = false`), que se ejecuta como función de Vercel con `@astrojs/vercel`
+- Publicada en **Vercel** (región de funciones `fra1`)
 - **TypeScript** estricto (`astro/tsconfigs/strict`)
 - CSS propio con tokens en `src/styles/global.css` (sin Tailwind ni librerías de componentes)
 - JavaScript **vanilla** en `<script>` de cada componente (sin React, Vue ni islas de framework)
@@ -33,13 +34,13 @@ Público: dueños y encargados de hostelería, poco técnicos, leyendo desde el 
 ```bash
 npm install
 npm run dev        # http://localhost:4321 (el service worker no se registra en dev)
-npm run build      # genera dist/
-npm run preview    # sirve dist/; aquí sí funciona la PWA
+npm run build      # genera .vercel/output/ (páginas estáticas + la función del formulario)
+npm run preview    # sirve la parte estática; aquí sí funciona la PWA (el formulario se prueba con dev)
 npm run check      # astro check (tipos)
 npm run icons      # regenera los iconos PWA desde brand/
 ```
 
-Variables (`.env`, ver `.env.example`): `PUBLIC_CONTACT_ENDPOINT`, `PUBLIC_UMAMI_SRC`, `PUBLIC_UMAMI_WEBSITE_ID`, `PUBLIC_GA_MEASUREMENT_ID`, `PUBLIC_META_PIXEL_ID`.
+Variables (`.env`, ver `.env.example`): `PUBLIC_CONTACT_ENDPOINT`, `PUBLIC_UMAMI_SRC`, `PUBLIC_UMAMI_WEBSITE_ID`, `PUBLIC_GA_MEASUREMENT_ID`, `PUBLIC_META_PIXEL_ID`. Solo servidor (esquema `env` de `astro.config.mjs`, se leen con `astro:env/server`): `RESEND_API_KEY`, `CONTACT_TO`, `CONTACT_FROM`.
 
 ## 4. Estructura
 
@@ -54,12 +55,15 @@ src/
     about.ts              # persona, experiencia y formación (se publica solo lo completo)
   content/guias/*.md      # guías (artículos); esquema en src/content.config.ts, URL = nombre del archivo
   lib/jsonld.ts           # generadores schema.org (FAQPage, Service, BreadcrumbList)
+  lib/contact.ts          # validación del formulario y email de aviso (funciones puras)
   layouts/
     Base.astro            # <head>, SEO, JSON-LD de negocio, header/footer, cookies, registro SW
     ServicePage.astro     # plantilla única de las 3 páginas de servicio
     Legal.astro           # páginas legales (lleva aviso de borrador)
   components/             # un componente = marcado + <script> + <style> con scope
   pages/                  # rutas; las de servicio son una línea que llama a ServicePage
+    api/contacto.ts       # ÚNICA ruta de servidor: recibe el formulario y lo envía con Resend
+    gracias.astro, no-enviado.astro  # destinos del formulario sin JavaScript (noindex)
 public/                   # sw.js, manifest, iconos, og.png, favicon.svg, favicon.ico
 brand/                    # logo: SVG originales (símbolo, nombre, logo completo, iconos) y PNG para emails
 scripts/generate-assets.mjs  # iconos PWA desde brand/*.svg
@@ -107,7 +111,7 @@ scripts/generate-assets.mjs  # iconos PWA desde brand/*.svg
 
 - `public/sw.js`: páginas con red primero y respaldo `/offline/`; `/_astro/*` con caché primero; resto, servir y actualizar.
 - **Si cambias la lógica del service worker o la lista `PRECACHE`, sube `VERSION`.**
-- No cachees peticiones `POST` ni de otros dominios (el formulario va a n8n).
+- No cachees peticiones `POST`, `/api/*` ni de otros dominios.
 
 ## 10. Cookies
 
@@ -118,7 +122,9 @@ scripts/generate-assets.mjs  # iconos PWA desde brand/*.svg
 
 ## 11. Formulario de contacto
 
-- Envía `POST` JSON a `PUBLIC_CONTACT_ENDPOINT` (webhook de n8n). El formato está en el README; si lo cambias, actualiza el README y el flujo de n8n.
+- Envía `POST` JSON a `PUBLIC_CONTACT_ENDPOINT` (`/api/contacto/`). Sin JavaScript, el formulario normal llega al mismo endpoint y redirige a `/gracias/` o `/no-enviado/`. El formato y las respuestas están en el README; si cambias uno, cambia el otro y `src/lib/contact.ts`.
+- La validación del servidor (`parseLead`) repite las reglas del formulario: si cambias un campo, cambia los dos.
+- Nada de datos personales en los logs de la función: solo códigos de error.
 - Mantén: campo trampa `company`, consentimiento obligatorio, mensaje de error que diga qué hacer, prerrelleno desde `?plan=` y `?motivo=`.
 
 ## 12. Definition of Done
@@ -134,10 +140,11 @@ scripts/generate-assets.mjs  # iconos PWA desde brand/*.svg
 
 - Conventional Commits en inglés: `feat(pricing): add annual plan toggle`, `fix(sw): bump cache version`.
 - **Los commits salen solo a nombre de Manuel: no añadir trailers `Co-Authored-By: Claude` ni `Claude-Session`.**
-- Nunca se sube `.env`, `dist/`, `.astro/` ni `node_modules/`.
+- Nunca se sube `.env`, `dist/`, `.vercel/`, `.astro/` ni `node_modules/`.
 
 ## 14. Qué NO hacer
 
+- **No** añadir más rutas de servidor ni `output: "server"` sin preguntar: la web es estática salvo `/api/contacto/`.
 - **No** añadir React, Vue, Svelte, Tailwind ni librerías de UI. Si de verdad hace falta una dependencia, justifícalo (peso, alternativa nativa) y pregunta antes.
 - **No** escribir precios, emails, teléfonos ni el dominio fuera de `src/config/site.ts`.
 - **No** inventar testimonios, reseñas, logos de clientes, cifras de resultados ni años de experiencia. Si no hay dato real, se deja el hueco o la sección no aparece.
