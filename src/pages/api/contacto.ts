@@ -8,6 +8,9 @@ import { buildLeadEmail, parseLead } from '../../lib/contact';
 
 export const prerender = false;
 
+// Quita espacios y comillas que se cuelan al pegar valores en el panel de Vercel.
+const env = (v: string | undefined) => v?.trim().replace(/^(["'])(.*)\1$/, '$2').trim() ?? '';
+
 const json = (status: number, body: Record<string, unknown>) =>
   new Response(JSON.stringify(body), {
     status,
@@ -61,7 +64,11 @@ export const POST: APIRoute = async ({ request }) => {
     return parsed.reason === 'honeypot' ? done(true, 200) : done(false, 400, parsed.reason);
   }
 
-  if (!RESEND_API_KEY || !CONTACT_TO || !CONTACT_FROM) {
+  const apiKey = env(RESEND_API_KEY);
+  const from = env(CONTACT_FROM);
+  const to = env(CONTACT_TO).split(',').map((s) => s.trim()).filter(Boolean);
+
+  if (!apiKey || !from || to.length === 0) {
     console.error('[contacto] Faltan RESEND_API_KEY, CONTACT_TO o CONTACT_FROM');
     return done(false, 503);
   }
@@ -71,10 +78,10 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: CONTACT_FROM,
-        to: CONTACT_TO.split(',').map((s) => s.trim()).filter(Boolean),
+        from,
+        to,
         reply_to: parsed.lead.email || undefined,
         subject,
         html,
@@ -83,8 +90,12 @@ export const POST: APIRoute = async ({ request }) => {
       signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) {
-      // Sin datos personales en los logs: solo el código de Resend.
-      console.error(`[contacto] Resend respondió ${res.status}`);
+      // Código y motivo de Resend, con cualquier dirección de email tapada: nada de datos personales en los logs.
+      const detail = await res
+        .json()
+        .then((d: { name?: string; message?: string }) => `${d.name ?? ''} ${d.message ?? ''}`)
+        .catch(() => '');
+      console.error(`[contacto] Resend respondió ${res.status} ${detail.replace(/[^\s<>"'`]+@[^\s<>"'`]+/g, '[email]').slice(0, 300)}`);
       return done(false, 502);
     }
   } catch (err) {
