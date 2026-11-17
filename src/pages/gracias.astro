@@ -1,0 +1,18 @@
+---
+// Destino del formulario cuando se envía sin JavaScript (src/pages/api/contacto.ts).
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Mensaje enviado" noindex>
+  <section class="section">
+    <div class="wrap prose">
+      <h1>Mensaje enviado</h1>
+      <p>Gracias. Te escribo o te llamo en menos de 24 horas laborables.</p>
+      <p><a class="btn btn-primary" href="/">Volver al inicio</a></p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  h1 { font-size: var(--step-4); margin-bottom: var(--space-2); }
+</style>

@@ -8,10 +8,10 @@ Lighthouse móvil (home, build local): Rendimiento 100 · Accesibilidad 100 · B
 
 ```bash
 npm install
-cp .env.example .env     # pon la URL de tu webhook de n8n
+cp .env.example .env     # variables del formulario de contacto (ver más abajo)
 npm run dev              # http://localhost:4321
-npm run build            # genera dist/
-npm run preview          # sirve dist/ (el service worker solo funciona aquí, no en dev)
+npm run build            # genera .vercel/output/ (estático + la función /api/contacto/)
+npm run preview          # sirve la parte estática; aquí funciona el service worker (no en dev). El formulario se prueba con `npm run dev`
 ```
 
 Requiere **Node 22.23.4 o superior** (lo exige Astro 7). Recomendado: Node 24 LTS, que viene fijado en `.nvmrc`.
@@ -45,7 +45,9 @@ Todo el contenido está en datos, no repartido por los componentes:
 
 ## Formulario de contacto
 
-`PUBLIC_CONTACT_ENDPOINT` recibe un `POST` con JSON:
+El formulario envía un `POST` a `/api/contacto/` (`src/pages/api/contacto.ts`), la única ruta que se ejecuta en el servidor: una función de Vercel. El resto de la web sigue siendo estática. La función valida los datos (`src/lib/contact.ts`) y te los envía por email con la API de Resend, sin librerías.
+
+Formato que envía el formulario con JavaScript:
 
 ```json
 {
@@ -55,11 +57,26 @@ Todo el contenido está en datos, no repartido por los componentes:
 }
 ```
 
-Flujo sugerido en n8n: **Webhook** (POST, responde 200) → **Email** o **Telegram/WhatsApp** a ti → opcionalmente guardar en una hoja o en tu CRM. Activa CORS en el webhook para tu dominio.
+Sin JavaScript, el navegador envía el formulario normal y la función redirige a `/gracias/` o a `/no-enviado/`.
 
-Protección: campo trampa oculto (`company`), consentimiento obligatorio y validación en el navegador. Añade rate limit en n8n o en Caddy.
+**Configuración en Vercel** (Settings → Environment Variables, para Production y Preview) y después volver a desplegar:
 
-Sin endpoint, el formulario abre el cliente de correo del visitante con el mensaje redactado.
+| Variable | Valor |
+|---|---|
+| `PUBLIC_CONTACT_ENDPOINT` | `/api/contacto/` |
+| `RESEND_API_KEY` | Clave de Resend (Settings → API Keys, permiso de envío) |
+| `CONTACT_TO` | Dónde te llegan los avisos; varias separadas por comas |
+| `CONTACT_FROM` | Remitente de un dominio verificado en Resend, p. ej. `Web Cubierto <web@cubierto.site>` |
+
+En Resend, añade y verifica `cubierto.site` eligiendo la región de Irlanda (`eu-west-1`). Sus registros DNS no chocan con los del buzón de correo. En Vercel, Settings → Functions → región `fra1` (Fráncfort).
+
+Respuestas de `/api/contacto/`: `200` enviado · `400` datos no válidos (con `reason`) · `403` otro origen · `405` método · `413` demasiado grande · `415` formato · `502` falló Resend · `503` faltan variables. Con error, el formulario muestra el mensaje y ofrece escribir a `site.contact.email`.
+
+Protección: campo trampa oculto (`company`), consentimiento obligatorio, validación en el navegador y otra vez en el servidor, solo se aceptan envíos desde la propia web y tamaño máximo. Para limitar envíos por IP, crea una regla de rate limit en el Firewall de Vercel para `/api/contacto/`.
+
+Sin `PUBLIC_CONTACT_ENDPOINT`, el formulario abre el cliente de correo del visitante con el mensaje redactado.
+
+**Privacidad:** los mensajes pasan por la función de Vercel y por Resend antes de llegar a tu buzón. Menciónalo en `/privacidad/` cuando completes los textos legales (TODO).
 
 Los botones "Pedir este plan" y "Quiero entrar en el piloto" llevan a `/contacto/?plan=…` o `?motivo=piloto` y el formulario se rellena solo.
 
@@ -114,4 +131,4 @@ Siguiente paso recomendado para posicionar: alta en Google Search Console y en G
 
 ## Despliegue
 
-Es una web estática: Vercel, Netlify, Cloudflare Pages o tu VPS con Caddy sirviendo `dist/`. Para `sw.js`, configura `Cache-Control: no-cache`; para `/_astro/*`, `max-age=31536000, immutable`.
+Se publica en **Vercel** con el adaptador `@astrojs/vercel`: todas las páginas son estáticas y solo `/api/contacto/` es una función. Si algún día se mueve a otro sitio, hay que cambiar el adaptador (Netlify, Cloudflare o Node en tu VPS) o volver a un endpoint externo para el formulario. Para `sw.js`, `Cache-Control: no-cache`; para `/_astro/*`, `max-age=31536000, immutable` (lo pone ya el adaptador).

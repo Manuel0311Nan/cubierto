@@ -1,0 +1,20 @@
+---
+// Destino del formulario cuando falla un envío sin JavaScript (src/pages/api/contacto.ts).
+import Base from '../layouts/Base.astro';
+import { site } from '../config/site';
+---
+
+<Base title="No se ha podido enviar" noindex>
+  <section class="section">
+    <div class="wrap prose">
+      <h1>No se ha podido enviar</h1>
+      <p>Revisa que hayas puesto tu nombre, el del local y un teléfono válido, y que hayas marcado la casilla de privacidad.</p>
+      <p>Si el problema sigue, escríbeme a <a href={`mailto:${site.contact.email}`}>{site.contact.email}</a>.</p>
+      <p><a class="btn btn-primary" href="/contacto/">Volver al formulario</a></p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  h1 { font-size: var(--step-4); margin-bottom: var(--space-2); }
+</style>
