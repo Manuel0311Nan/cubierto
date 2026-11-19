@@ -36,6 +36,8 @@ Son los del anexo II del Reglamento (UE) 1169/2011:
 
 Cuentan también los productos derivados de cada uno. Una salsa con mantequilla lleva leche, y un rebozado con harina de trigo lleva gluten.
 
+Si quieres apuntarlos plato a plato, tienes una [tabla de los 14 alérgenos para imprimir](/herramientas/tabla-alergenos/), con el cartel de aviso para la sala.
+
 ## Cómo puedes dar la información
 
 La normativa española para la comida que se sirve sin envasar, como la de bares y restaurantes, es el Real Decreto 126/2015. Su artículo 6.5 te deja dos caminos:
@@ -58,6 +60,6 @@ En los dos casos, lo que dices tiene que coincidir con lo que lleva el plato ese
 
 Lo más fiable es que los alérgenos vivan en el mismo sitio que la carta. Si cada plato lleva sus alérgenos marcados, al cambiar un plato cambias también su información, y lo que ve el cliente es siempre lo mismo que tiene tu equipo.
 
-En una carta digital con QR, cada plato puede mostrar sus alérgenos con icono y nombre, y el cliente puede filtrar la carta, por ejemplo para ver solo los platos sin gluten. La información la decides tú. La carta solo se encarga de enseñarla bien y de avisarte si a un plato no le has marcado ninguno.
+En una carta digital con QR, cada plato puede mostrar sus alérgenos con icono y nombre, y el cliente puede filtrar la carta, por ejemplo para ver solo los platos sin gluten. Puedes probarlo en esta [carta de ejemplo](/carta-digital-qr/ejemplo/). La información la decides tú. La carta solo se encarga de enseñarla bien y de avisarte si a un plato no le has marcado ninguno.
 
 *Esta guía resume la normativa para que sepas por dónde empezar. No es asesoramiento legal. Para tu caso concreto, consulta con el servicio de seguridad alimentaria de tu comunidad autónoma.*

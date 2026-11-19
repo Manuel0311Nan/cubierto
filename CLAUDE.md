@@ -53,6 +53,9 @@ src/
     services.ts           # páginas de servicio: SEO, antes/después, funcionalidades
     faq.ts                # preguntas y en qué páginas salen
     about.ts              # persona, experiencia y formación (se publica solo lo completo)
+    alergenos.ts          # los 14 alérgenos del Reglamento (UE) 1169/2011 (carta de ejemplo y tabla)
+    ejemplo-carta.ts      # carta inventada de Casa Brezo para /carta-digital-qr/ejemplo/
+    herramientas.ts       # textos de /herramientas/ (tabla de alérgenos, calculadora de no-shows)
   content/guias/*.md      # guías (artículos); esquema en src/content.config.ts, URL = nombre del archivo
   lib/jsonld.ts           # generadores schema.org (FAQPage, Service, BreadcrumbList)
   lib/contact.ts          # validación del formulario y email de aviso (funciones puras)
@@ -65,6 +68,7 @@ src/
     api/contacto.ts       # ÚNICA ruta de servidor: recibe el formulario y lo envía con Resend
     gracias.astro, no-enviado.astro  # destinos del formulario sin JavaScript (noindex)
 public/                   # sw.js, manifest, iconos, og.png, favicon.svg, favicon.ico
+  qr/carta-ejemplo.svg    # QR estático de la carta de ejemplo (si cambia la URL, regenéralo)
 brand/                    # logo: SVG originales (símbolo, nombre, logo completo, iconos) y PNG para emails
 scripts/generate-assets.mjs  # iconos PWA desde brand/*.svg
 ```
@@ -105,6 +109,7 @@ scripts/generate-assets.mjs  # iconos PWA desde brand/*.svg
 - Guías en `src/content/guias/`: cada una con `sources` (fuentes reales), `service` (a qué servicio lleva) y respuesta directa en el primer párrafo. Llevan `Article` + `BreadcrumbList` y salen solas en `/guias/` y en "Guías relacionadas" de su servicio. Nada de datos sin fuente.
 - Páginas que no deben indexarse (`/offline/`, `404`): prop `noindex` y excluidas del sitemap en `astro.config.mjs`.
 - Si cambias el dominio, cámbialo en **`site.ts` y `astro.config.mjs`**.
+- Herramientas en `/herramientas/`: gratis, sin registro y sin cifras del sector sin fuente; los cálculos usan los números que mete el usuario. Cada una enlaza a su servicio.
 - Marca: "Cubierto" es una palabra común. `alternateName` y los perfiles (`profiles` en `site.ts`, salen como `sameAs`) deben usar el mismo nombre, teléfono y web en todas partes.
 - Nuevas páginas por zona (p. ej. `/torrejon-de-ardoz/`) solo con contenido propio real, nunca duplicando texto cambiando el nombre de la ciudad.
 
