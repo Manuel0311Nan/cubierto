@@ -105,6 +105,7 @@ scripts/generate-assets.mjs  # iconos PWA desde brand/*.svg
 - Guías en `src/content/guias/`: cada una con `sources` (fuentes reales), `service` (a qué servicio lleva) y respuesta directa en el primer párrafo. Llevan `Article` + `BreadcrumbList` y salen solas en `/guias/` y en "Guías relacionadas" de su servicio. Nada de datos sin fuente.
 - Páginas que no deben indexarse (`/offline/`, `404`): prop `noindex` y excluidas del sitemap en `astro.config.mjs`.
 - Si cambias el dominio, cámbialo en **`site.ts` y `astro.config.mjs`**.
+- Marca: "Cubierto" es una palabra común. `alternateName` y los perfiles (`profiles` en `site.ts`, salen como `sameAs`) deben usar el mismo nombre, teléfono y web en todas partes.
 - Nuevas páginas por zona (p. ej. `/torrejon-de-ardoz/`) solo con contenido propio real, nunca duplicando texto cambiando el nombre de la ciudad.
 
 ## 9. PWA

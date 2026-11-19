@@ -1,5 +1,5 @@
 /* Service worker de la web. Sube VERSION cuando cambies esta lógica. */
-const VERSION = 'v2';
+const VERSION = 'v3';
 const PAGES = `pages-${VERSION}`;
 const ASSETS = `assets-${VERSION}`;
 const PRECACHE = ['/', '/offline/', '/contacto/', '/favicon.svg', '/manifest.webmanifest', '/icons/icon-192.png'];

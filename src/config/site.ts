@@ -6,6 +6,15 @@
 
 export const site = {
   name: 'Cubierto',
+  /**
+   * "Apellido" de la marca. "Cubierto" es una palabra común: al buscarla salen el diccionario
+   * y tiendas de cubiertos. El nombre completo sale junto al logo, en og:site_name y en el JSON-LD,
+   * y es el que se usa en Instagram, LinkedIn y directorios. En la ficha de Google el nombre
+   * es solo "Cubierto" (sus directrices no permiten añadir descripciones al nombre).
+   */
+  brandLine: 'carta QR y reservas',
+  fullName: 'Cubierto · carta QR y reservas',
+  alternateName: ['Cubierto · carta QR y reservas', 'cubierto.site'],
   url: 'https://cubierto.site', // se usa en canonical, sitemap y JSON-LD (cámbialo también en astro.config.mjs)
   locale: 'es_ES',
   tagline: 'Webs, carta QR y reservas para bares y restaurantes',
@@ -23,15 +32,26 @@ export const site = {
   ],
 
   contact: {
-    email: 'hola@cubierto.site', // TODO: email real
-    phone: '', // TODO: teléfono en formato +34600000000 (vacío = no se muestra)
-    whatsapp: '', // TODO: número para WhatsApp en formato 34600000000 (vacío = no se muestra)
+    email: 'hola@cubierto.site',
+    phone: '+34614898447', // formato internacional para tel: y JSON-LD (vacío = no se muestra)
+    phoneDisplay: '614 89 84 47', // cómo se lee en la web
+    whatsapp: '34614898447', // número para WhatsApp en formato 34600000000 (vacío = no se muestra)
     /**
      * Endpoint que recibe el formulario: /api/contacto/ (src/pages/api/contacto.ts).
      * Se lee de la variable PUBLIC_CONTACT_ENDPOINT. Sin valor, el formulario
      * ofrece enviar el mensaje por email.
      */
     formEndpoint: import.meta.env.PUBLIC_CONTACT_ENDPOINT ?? '',
+  },
+
+  /**
+   * Perfiles públicos de la marca (JSON-LD sameAs). Vacío = no se publica.
+   * Rellénalos cuando existan, con el mismo nombre y teléfono que la web.
+   */
+  profiles: {
+    googleBusiness: 'https://maps.google.com/?cid=12569571851848537674', // ficha de Google Business Profile
+    instagram: '', // TODO
+    linkedin: '', // TODO: página de empresa
   },
 
   /** Analítica sin cookies (Umami). Vacío = sin analítica. */
@@ -45,7 +65,7 @@ export const site = {
     holder: 'Manuel Alcázar',
     taxId: '[NIF]', // TODO
     address: '[Dirección fiscal], Alcalá de Henares (Madrid)', // TODO
-    email: 'hola@cubierto.site', // TODO
+    email: 'hola@cubierto.site',
   },
 
   pilot: {

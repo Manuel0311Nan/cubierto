@@ -12,7 +12,7 @@ const year = new Date().getFullYear();
       <Logo tone="light" />
       <p>{site.tagline}. Desde {site.city}.</p>
       <p><a href={`mailto:${site.contact.email}`}>{site.contact.email}</a></p>
-      {site.contact.phone && <p><a href={`tel:${site.contact.phone}`}>{site.contact.phone}</a></p>}
+      {site.contact.phone && <p><a href={`tel:${site.contact.phone}`} data-umami-event="llamar">{site.contact.phoneDisplay}</a></p>}
     </div>
 
     <nav aria-label="Servicios">

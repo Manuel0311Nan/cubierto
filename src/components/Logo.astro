@@ -4,8 +4,10 @@ import { site } from '../config/site';
 interface Props {
   /** `brand`: verde sobre fondo claro (cabecera). `light`: toma el color del texto (pie sobre verde). */
   tone?: 'brand' | 'light';
+  /** Muestra el "apellido" de la marca (site.brandLine) bajo el nombre. */
+  withLine?: boolean;
 }
-const { tone = 'brand' } = Astro.props;
+const { tone = 'brand', withLine = true } = Astro.props;
 ---
 
 <span class:list={['logo', tone]}>
@@ -30,7 +32,10 @@ const { tone = 'brand' } = Astro.props;
       d="M61.5,90.5 A19,19 0 0 1 80.5,71.5 H97.6 A2.4,2.4 0 0 1 100,73.9 V91 A19,19 0 0 1 81,110 H63.9 A2.4,2.4 0 0 1 61.5,107.6 Z M73.5,91.1 A7.6,7.6 0 0 1 81.1,83.5 H87 A1,1 0 0 1 88,84.5 V90.4 A7.6,7.6 0 0 1 80.4,98 H74.5 A1,1 0 0 1 73.5,97 Z"
     ></path>
   </svg>
-  <span>{site.name.toLowerCase()}</span>
+  <span class="words">
+    <span class="name">{site.name.toLowerCase()}</span>
+    {withLine && <span class="line">{site.brandLine}</span>}
+  </span>
 </span>
 
 <style>
@@ -45,6 +50,21 @@ const { tone = 'brand' } = Astro.props;
   }
   .logo svg {
     flex: none;
+  }
+  .words {
+    display: grid;
+    gap: 0.15rem;
+  }
+  .line {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .light .line {
+    color: inherit;
+    opacity: 0.8;
   }
   .brand {
     color: var(--logo);
