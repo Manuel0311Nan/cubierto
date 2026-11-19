@@ -22,7 +22,7 @@ const wa = site.contact.whatsapp;
       <p>Te respondo en menos de 24 horas laborables, normalmente el mismo día. Si prefieres, te llamo yo en el hueco que me digas.</p>
       <ul class="direct">
         <li><a href={`mailto:${site.contact.email}`}>{site.contact.email}</a></li>
-        {site.contact.phone && <li><a href={`tel:${site.contact.phone}`}>{site.contact.phone}</a></li>}
+        {site.contact.phone && <li><a href={`tel:${site.contact.phone}`} data-umami-event="llamar">{site.contact.phoneDisplay}</a></li>}
         {wa && <li><a href={`https://wa.me/${wa}`} rel="noopener">Escribir por WhatsApp</a></li>}
       </ul>
     </div>

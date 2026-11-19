@@ -52,6 +52,9 @@ const cheapest = Math.min(...Object.values(pricing.monthly));
           })
         }
       </ul>
+      <p class="pack-note">
+        <strong>Pack completo:</strong> los tres módulos por {formatEuros(pricing.pack)} al mes y un alta única de {formatEuros(pricing.packSetup)} IVA incluido, con la web incluida.
+      </p>
       <p class="small muted vat">{pricing.vatNote}</p>
     </div>
   </section>
@@ -62,6 +65,13 @@ const cheapest = Math.min(...Object.values(pricing.monthly));
 </Base>
 
 <style>
+  .pack-note {
+    margin-top: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    border-left: 4px solid var(--saffron);
+    background: var(--tile);
+    max-width: 48rem;
+  }
   .intro {
     padding-block: var(--space-4) var(--space-5);
   }

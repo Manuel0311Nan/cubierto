@@ -6,6 +6,15 @@
 
 export const site = {
   name: 'Cubierto',
+  /**
+   * "Apellido" de la marca. "Cubierto" es una palabra común: al buscarla salen el diccionario
+   * y tiendas de cubiertos. El nombre completo sale junto al logo, en og:site_name y en el JSON-LD,
+   * y es el que se usa en Instagram, LinkedIn y directorios. En la ficha de Google el nombre
+   * es solo "Cubierto" (sus directrices no permiten añadir descripciones al nombre).
+   */
+  brandLine: 'carta QR y reservas',
+  fullName: 'Cubierto · carta QR y reservas',
+  alternateName: ['Cubierto · carta QR y reservas', 'cubierto.site'],
   url: 'https://cubierto.site', // se usa en canonical, sitemap y JSON-LD (cámbialo también en astro.config.mjs)
   locale: 'es_ES',
   tagline: 'Webs, carta QR y reservas para bares y restaurantes',
@@ -23,9 +32,10 @@ export const site = {
   ],
 
   contact: {
-    email: 'hola@cubierto.site', // TODO: email real
-    phone: '', // TODO: teléfono en formato +34600000000 (vacío = no se muestra)
-    whatsapp: '', // TODO: número para WhatsApp en formato 34600000000 (vacío = no se muestra)
+    email: 'hola@cubierto.site',
+    phone: '+34614898447', // formato internacional para tel: y JSON-LD (vacío = no se muestra)
+    phoneDisplay: '614 89 84 47', // cómo se lee en la web
+    whatsapp: '34614898447', // número para WhatsApp en formato 34600000000 (vacío = no se muestra)
     /**
      * Endpoint que recibe el formulario: /api/contacto/ (src/pages/api/contacto.ts).
      * Se lee de la variable PUBLIC_CONTACT_ENDPOINT. Sin valor, el formulario
@@ -34,10 +44,24 @@ export const site = {
     formEndpoint: import.meta.env.PUBLIC_CONTACT_ENDPOINT ?? '',
   },
 
-  /** Analítica sin cookies (Umami). Vacío = sin analítica. */
+  /**
+   * Perfiles públicos de la marca (JSON-LD sameAs). Vacío = no se publica.
+   * Rellénalos cuando existan, con el mismo nombre y teléfono que la web.
+   */
+  profiles: {
+    googleBusiness: 'https://maps.google.com/?cid=12569571851848537674', // ficha de Google Business Profile
+    instagram: '', // TODO
+    linkedin: '', // TODO: página de empresa
+  },
+
+  /**
+   * Analítica sin cookies (Umami Cloud). Las variables PUBLIC_UMAMI_* lo sobrescriben;
+   * déjalas vacías en .env para usar estos valores. Solo cuenta visitas del dominio de `url`
+   * (ni localhost ni previews de Vercel).
+   */
   umami: {
-    src: import.meta.env.PUBLIC_UMAMI_SRC ?? '',
-    websiteId: import.meta.env.PUBLIC_UMAMI_WEBSITE_ID ?? '',
+    src: import.meta.env.PUBLIC_UMAMI_SRC || 'https://cloud.umami.is/script.js',
+    websiteId: import.meta.env.PUBLIC_UMAMI_WEBSITE_ID || 'f814f029-7515-4c47-b8da-2f79f9623a03',
   },
 
   /** Datos legales para aviso legal y privacidad (LSSI y RGPD). */
@@ -45,25 +69,29 @@ export const site = {
     holder: 'Manuel Alcázar',
     taxId: '[NIF]', // TODO
     address: '[Dirección fiscal], Alcalá de Henares (Madrid)', // TODO
-    email: 'hola@cubierto.site', // TODO
+    email: 'hola@cubierto.site',
   },
 
   pilot: {
     enabled: true,
     spots: 3, // locales que buscas para el piloto
     freeMonths: 1, // meses de cuota gratis al empezar
-    webSetup: 299, // alta de la web para los locales del piloto (precio normal: pricing.webSetupFrom)
+    webSetup: 299, // alta de la web para los locales del piloto (precio normal: pricing.webSetupFrom). TODO: confirmar con el alta de 600 €
   },
 } as const;
 
 export type ModuleKey = 'web' | 'carta' | 'reservas';
 
-/** Precios orientativos sin IVA. Cambia aquí y se actualiza toda la web. */
+/**
+ * Precios orientativos sin IVA, salvo `packSetup`, que lleva el IVA incluido.
+ * Cambia aquí y se actualiza toda la web. Deben coincidir con cubierto/specs (01-contexto y 05-pagos).
+ */
 export const pricing = {
   monthly: { web: 39, carta: 24, reservas: 44 } satisfies Record<ModuleKey, number>,
   pack: 79, // los tres módulos juntos
-  webSetupFrom: 499, // alta de la web, pago único
-  vatNote: 'Precios sin IVA. Sin permanencia: das de baja un módulo cuando quieras.',
+  webSetupFrom: 600, // alta de la web suelta, pago único, sin IVA
+  packSetup: 499, // alta del pack completo (los tres módulos), pago único, IVA INCLUIDO
+  vatNote: 'Precios sin IVA, salvo donde se indica. Sin permanencia: das de baja un módulo cuando quieras.',
 };
 
 export const nav = [

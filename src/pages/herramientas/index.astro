@@ -1,0 +1,103 @@
+---
+import Base from '../../layouts/Base.astro';
+import ModuleIcon from '../../components/ModuleIcon.astro';
+import { tools, toolsPage as t } from '../../data/herramientas';
+import { breadcrumbJsonLd } from '../../lib/jsonld';
+---
+
+<Base title={t.seoTitle} description={t.seoDescription} jsonLd={[breadcrumbJsonLd([{ name: 'Herramientas', path: '/herramientas/' }])]}>
+  <section class="section">
+    <div class="wrap">
+      <nav class="crumbs" aria-label="Estás en">
+        <a href="/">Inicio</a> <span aria-hidden="true">/</span> <span aria-current="page">Herramientas</span>
+      </nav>
+      <h1>{t.h1}</h1>
+      <p class="lead">{t.intro}</p>
+
+      <ul class="list">
+        {
+          [
+            ...tools.map((x) => ({ href: `/herramientas/${x.slug}/`, name: x.name, text: x.seoDescription, service: x.service })),
+            {
+              href: '/carta-digital-qr/ejemplo/',
+              name: 'Carta digital de ejemplo',
+              text: 'Escanea el QR y prueba en tu móvil una carta con menú del día, alérgenos y platos agotados.',
+              service: 'carta' as const,
+            },
+          ].map((x) => (
+            <li>
+              <a class="item" href={x.href}>
+                <span class="icon"><ModuleIcon name={x.service} size={32} /></span>
+                <span>
+                  <h2>{x.name}</h2>
+                  <p>{x.text}</p>
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="more">¿Buscas algo más largo? Mira las <a href="/guias/">guías para bares y restaurantes</a>.</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .crumbs {
+    font-size: var(--step--1);
+    color: var(--muted);
+    margin-bottom: var(--space-3);
+  }
+  h1 {
+    font-size: var(--step-5);
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+    font-weight: 750;
+    max-width: 18ch;
+  }
+  .lead {
+    margin-top: var(--space-3);
+    font-size: var(--step-1);
+    color: var(--muted);
+    max-width: 40rem;
+  }
+  .list {
+    list-style: none;
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-2);
+    max-width: 48rem;
+  }
+  .item {
+    display: flex;
+    gap: var(--space-2);
+    align-items: flex-start;
+    padding: var(--space-3);
+    border: 2px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+    text-decoration: none;
+    color: inherit;
+  }
+  .item:hover {
+    border-color: var(--bottle);
+  }
+  .icon {
+    color: var(--strong);
+    flex: none;
+  }
+  h2 {
+    font-size: var(--step-2);
+  }
+  .item p {
+    margin-top: 0.4rem;
+    color: var(--muted);
+  }
+  .more {
+    margin-top: var(--space-4);
+  }
+  .more a {
+    font-weight: 650;
+  }
+</style>

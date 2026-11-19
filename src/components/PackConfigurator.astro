@@ -3,7 +3,7 @@ import { modules } from '../data/modules';
 import { pricing, formatEuros } from '../config/site';
 
 const sum = Object.values(pricing.monthly).reduce((a, b) => a + b, 0);
-const data = JSON.stringify({ monthly: pricing.monthly, pack: pricing.pack, setup: pricing.webSetupFrom });
+const data = JSON.stringify({ monthly: pricing.monthly, pack: pricing.pack, setup: pricing.webSetupFrom, packSetup: pricing.packSetup });
 ---
 
 <section class="pricing" id="precios" aria-labelledby="precios-title">
@@ -35,7 +35,7 @@ const data = JSON.stringify({ monthly: pricing.monthly, pack: pricing.pack, setu
           <span class="per">al mes</span>
         </p>
         <p class="detail" data-detail>Precio de pack: ahorras {formatEuros(sum - pricing.pack)} al mes.</p>
-        <p class="detail" data-setup>Alta de la web: pago único desde {formatEuros(pricing.webSetupFrom)}.</p>
+        <p class="detail" data-setup>Alta del pack completo: {formatEuros(pricing.packSetup)} IVA incluido, pago único.</p>
       </div>
 
       <button class="btn btn-primary" type="submit" data-submit>Pedir este plan</button>
@@ -52,6 +52,7 @@ const data = JSON.stringify({ monthly: pricing.monthly, pack: pricing.pack, setu
       monthly: Record<string, number>;
       pack: number;
       setup: number;
+      packSetup: number;
     };
     const total = form.querySelector<HTMLElement>('[data-total]')!;
     const detail = form.querySelector<HTMLElement>('[data-detail]')!;
@@ -67,7 +68,10 @@ const data = JSON.stringify({ monthly: pricing.monthly, pack: pricing.pack, setu
 
       total.textContent = fmt(price);
       submit.disabled = chosen.length === 0;
-      setup.hidden = !chosen.includes('web');
+      setup.hidden = !chosen.includes('web') && !isPack;
+      setup.textContent = isPack
+        ? `Alta del pack completo: ${fmt(cfg.packSetup)} IVA incluido, pago único.`
+        : `Alta de la web: pago único desde ${fmt(cfg.setup)}.`;
 
       if (chosen.length === 0) {
         detail.textContent = 'Marca al menos un módulo.';

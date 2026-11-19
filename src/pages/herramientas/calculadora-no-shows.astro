@@ -1,0 +1,268 @@
+---
+import Base from '../../layouts/Base.astro';
+import ContactForm from '../../components/ContactForm.astro';
+import { tools, noShowCalc as t } from '../../data/herramientas';
+import { services } from '../../data/services';
+import { pricing } from '../../config/site';
+import { breadcrumbJsonLd } from '../../lib/jsonld';
+
+const tool = tools.find((x) => x.slug === 'calculadora-no-shows')!;
+const path = `/herramientas/${tool.slug}/`;
+const fields = Object.entries(t.fields);
+const jsonLd = [
+  breadcrumbJsonLd([
+    { name: 'Herramientas', path: '/herramientas/' },
+    { name: tool.name, path },
+  ]),
+];
+---
+
+<Base title={tool.seoTitle} description={tool.seoDescription} jsonLd={jsonLd}>
+  <section class="section">
+    <div class="wrap">
+      <nav class="crumbs" aria-label="Estás en">
+        <a href="/">Inicio</a> <span aria-hidden="true">/</span> <a href="/herramientas/">Herramientas</a>
+      </nav>
+      <h1>{tool.h1}</h1>
+      <p class="lead">{tool.intro}</p>
+
+      <div class="calc" data-noshow data-fee={pricing.monthly.reservas}>
+        <form class="inputs" onsubmit="return false">
+          {
+            fields.map(([key, f]) => (
+              <div class="field">
+                <label for={`ns-${key}`}>{f.label}</label>
+                <input id={`ns-${key}`} name={key} type="number" inputmode="decimal" value={f.value} min={f.min} max={f.max} step={f.step} />
+              </div>
+            ))
+          }
+        </form>
+
+        <div class="result" aria-live="polite">
+          <h2>{t.resultTitle}</h2>
+          <noscript><p>{t.noJs}</p></noscript>
+          <dl data-out hidden>
+            <div>
+              <dt>Reservas que no vienen al mes</dt>
+              <dd data-k="lost">—</dd>
+            </div>
+            <div>
+              <dt>Comensales que no llegan al mes</dt>
+              <dd data-k="covers">—</dd>
+            </div>
+            <div class="big">
+              <dt>Lo que dejas de facturar al mes</dt>
+              <dd data-k="month">—</dd>
+            </div>
+            <div class="big">
+              <dt>Al año</dt>
+              <dd data-k="year">—</dd>
+            </div>
+          </dl>
+          <p class="fee" data-fee-text hidden></p>
+          <p class="formula small">Cómo se calcula: {t.formula}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section tips" aria-labelledby="tips-title">
+    <div class="wrap">
+      <h2 id="tips-title">{t.tipsTitle}</h2>
+      <ul class="tip-grid">
+        {
+          t.tips.map((x) => (
+            <li>
+              <h3>{x.title}</h3>
+              <p>{x.text}</p>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="more">
+        Las reservas online hacen casi todo esto solas: recordatorio con enlace para cancelar, lista de espera y "no vino" con un toque.{' '}
+        <a href={services.reservas.path}>Ver cómo funcionan las reservas</a>
+      </p>
+    </div>
+  </section>
+
+  <ContactForm preselect="reservas" heading={services.reservas.contactHeading} />
+</Base>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-noshow]').forEach((calc) => {
+    const out = calc.querySelector<HTMLElement>('[data-out]')!;
+    const feeText = calc.querySelector<HTMLElement>('[data-fee-text]')!;
+    const fee = Number(calc.dataset.fee);
+    const num = (name: string) => {
+      const el = calc.querySelector<HTMLInputElement>(`[name="${name}"]`)!;
+      const v = Number(el.value.replace(',', '.'));
+      return Number.isFinite(v) && v >= 0 ? v : 0;
+    };
+    const eur = (n: number) =>
+      new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+    const int = (n: number) => new Intl.NumberFormat('es-ES', { maximumFractionDigits: 0 }).format(n);
+    const set = (k: string, v: string) => (calc.querySelector<HTMLElement>(`[data-k="${k}"]`)!.textContent = v);
+
+    const update = () => {
+      const lost = num('reservations') * (Math.min(num('noShowRate'), 100) / 100);
+      const covers = lost * num('partySize');
+      const perCover = num('ticket');
+      const month = covers * perCover;
+      set('lost', int(lost));
+      set('covers', int(covers));
+      set('month', eur(month));
+      set('year', eur(month * 12));
+
+      const perReservation = num('partySize') * perCover;
+      if (perReservation > 0 && fee > 0) {
+        const needed = Math.ceil(fee / perReservation);
+        feeText.textContent = `Con que vengan ${needed} ${needed === 1 ? 'reserva' : 'reservas'} más al mes, la cuota del programa de reservas (${eur(fee)} al mes) ya está pagada.`;
+        feeText.hidden = false;
+      } else {
+        feeText.hidden = true;
+      }
+    };
+
+    out.hidden = false;
+    calc.addEventListener('input', update);
+    update();
+  });
+</script>
+
+<style>
+  .crumbs {
+    font-size: var(--step--1);
+    color: var(--muted);
+    margin-bottom: var(--space-3);
+  }
+  h1 {
+    font-size: var(--step-5);
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+    font-weight: 750;
+    max-width: 18ch;
+  }
+  .lead {
+    margin-top: var(--space-3);
+    font-size: var(--step-1);
+    line-height: 1.5;
+    color: var(--muted);
+    max-width: 40rem;
+  }
+  .calc {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+    align-items: start;
+  }
+  .inputs {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border: 2px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+  }
+  .field {
+    display: grid;
+    gap: 0.35rem;
+  }
+  label {
+    font-weight: 650;
+  }
+  input {
+    font: inherit;
+    font-size: var(--step-1);
+    font-variant-numeric: tabular-nums;
+    min-height: 3rem;
+    padding: 0.4rem 0.75rem;
+    border: 2px solid var(--line);
+    border-radius: var(--radius-s);
+    background: var(--paper);
+    color: var(--ink);
+    width: 100%;
+  }
+  .result {
+    padding: var(--space-3);
+    border-radius: var(--radius-m);
+    background: var(--bottle);
+    color: var(--bottle-ink);
+  }
+  .result h2 {
+    font-size: var(--step-2);
+  }
+  dl {
+    margin: var(--space-2) 0 0;
+    display: grid;
+    gap: var(--space-1);
+  }
+  dl[hidden] {
+    display: none;
+  }
+  dl div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-2);
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--bottle-ink) 22%, transparent);
+  }
+  dd {
+    margin: 0;
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .big dd {
+    font-size: var(--step-3);
+    color: var(--saffron);
+  }
+  .fee {
+    margin-top: var(--space-2);
+    font-weight: 650;
+  }
+  .formula {
+    margin-top: var(--space-2);
+    opacity: 0.8;
+  }
+  .tips {
+    padding-top: 0;
+  }
+  .tips h2 {
+    font-size: var(--step-4);
+  }
+  .tip-grid {
+    list-style: none;
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+  .tip-grid li {
+    padding-top: var(--space-2);
+    border-top: 4px solid var(--saffron);
+  }
+  .tip-grid h3 {
+    font-size: var(--step-1);
+  }
+  .tip-grid p {
+    margin-top: 0.4rem;
+    color: var(--muted);
+  }
+  .more {
+    margin-top: var(--space-4);
+    max-width: 44rem;
+  }
+  .more a {
+    font-weight: 650;
+  }
+  @media (max-width: 860px) {
+    .calc,
+    .tip-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
