@@ -48,8 +48,13 @@ export const faqs: Faq[] = [
   },
   {
     q: '¿Cuánto cuesta una página web para un restaurante?',
-    a: `El alta, que incluye el diseño y la puesta en marcha, es un pago único desde ${formatEuros(pricing.webSetupFrom)}. Después, ${formatEuros(pricing.monthly.web)} al mes ${vat} con hosting, dominio, copias de seguridad y cambios pequeños incluidos.`,
+    a: `El alta, que incluye el diseño y la puesta en marcha, es un pago único desde ${formatEuros(pricing.webSetupFrom)} ${vat}. Después, ${formatEuros(pricing.monthly.web)} al mes ${vat} con hosting, dominio, copias de seguridad y cambios pequeños incluidos. Si contratas los tres módulos, el alta del pack completo es de ${formatEuros(pricing.packSetup)} con IVA incluido.`,
     on: ['web', 'precios'],
+  },
+  {
+    q: '¿Cuánto cuesta el pack completo?',
+    a: `Los tres módulos (web, carta QR y reservas) cuestan ${formatEuros(pricing.pack)} al mes ${vat}, más un alta única de ${formatEuros(pricing.packSetup)} con IVA incluido. Sin permanencia: si un día dejas un módulo, pasas a pagar solo los que sigas usando.`,
+    on: ['precios'],
   },
   {
     q: '¿La web me ayuda a salir en Google Maps?',

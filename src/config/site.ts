@@ -52,18 +52,22 @@ export const site = {
     enabled: true,
     spots: 3, // locales que buscas para el piloto
     freeMonths: 1, // meses de cuota gratis al empezar
-    webSetup: 299, // alta de la web para los locales del piloto (precio normal: pricing.webSetupFrom)
+    webSetup: 299, // alta de la web para los locales del piloto (precio normal: pricing.webSetupFrom). TODO: confirmar con el alta de 600 €
   },
 } as const;
 
 export type ModuleKey = 'web' | 'carta' | 'reservas';
 
-/** Precios orientativos sin IVA. Cambia aquí y se actualiza toda la web. */
+/**
+ * Precios orientativos sin IVA, salvo `packSetup`, que lleva el IVA incluido.
+ * Cambia aquí y se actualiza toda la web. Deben coincidir con cubierto/specs (01-contexto y 05-pagos).
+ */
 export const pricing = {
   monthly: { web: 39, carta: 24, reservas: 44 } satisfies Record<ModuleKey, number>,
   pack: 79, // los tres módulos juntos
-  webSetupFrom: 499, // alta de la web, pago único
-  vatNote: 'Precios sin IVA. Sin permanencia: das de baja un módulo cuando quieras.',
+  webSetupFrom: 600, // alta de la web suelta, pago único, sin IVA
+  packSetup: 499, // alta del pack completo (los tres módulos), pago único, IVA INCLUIDO
+  vatNote: 'Precios sin IVA, salvo donde se indica. Sin permanencia: das de baja un módulo cuando quieras.',
 };
 
 export const nav = [
