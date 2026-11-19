@@ -1,0 +1,359 @@
+---
+import Base from '../../layouts/Base.astro';
+import ContactForm from '../../components/ContactForm.astro';
+import { tools, allergenSheet as t } from '../../data/herramientas';
+import { allergens } from '../../data/alergenos';
+import { services } from '../../data/services';
+import { breadcrumbJsonLd } from '../../lib/jsonld';
+
+const tool = tools.find((x) => x.slug === 'tabla-alergenos')!;
+const path = `/herramientas/${tool.slug}/`;
+const rows = Array.from({ length: t.rows });
+const jsonLd = [
+  breadcrumbJsonLd([
+    { name: 'Herramientas', path: '/herramientas/' },
+    { name: tool.name, path },
+  ]),
+];
+---
+
+<Base title={tool.seoTitle} description={tool.seoDescription} jsonLd={jsonLd}>
+  <section class="section" data-print-root>
+    <div class="wrap">
+      <nav class="crumbs no-print" aria-label="Estás en">
+        <a href="/">Inicio</a> <span aria-hidden="true">/</span> <a href="/herramientas/">Herramientas</a>
+      </nav>
+
+      <div class="no-print">
+        <h1>{tool.h1}</h1>
+        <p class="lead">{tool.intro}</p>
+        <div class="actions" data-print-actions hidden>
+          <button type="button" class="btn btn-primary" data-print="tabla">{t.printTable}</button>
+          <button type="button" class="btn btn-ghost" data-print="cartel">{t.printSign}</button>
+        </div>
+        <noscript><p class="small muted">{t.noJs}</p></noscript>
+      </div>
+
+      <div class="sheet print-tabla">
+        <div class="sheet-head">
+          <h2>{t.tableTitle}</h2>
+          <p><span>{t.venueLabel}:</span> <span class="blank"></span></p>
+          <p><span>{t.dateLabel}:</span> <span class="blank short"></span></p>
+        </div>
+        <div class="scroller" tabindex="0" role="region" aria-label="Tabla de alérgenos">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col" class="dish">{t.dishLabel}</th>
+                {allergens.map((a) => <th scope="col" class="al"><span>{a.short}</span></th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {
+                rows.map(() => (
+                  <tr>
+                    <td class="dish" />
+                    {allergens.map(() => <td />)}
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="sign print-cartel">
+        <p class="sign-title">{t.signTitle}</p>
+        <p class="sign-text">{t.signText}</p>
+      </div>
+      <p class="small muted no-print sign-note">{t.signNote}</p>
+
+      <div class="cols no-print">
+        <div>
+          <h2>{t.legendTitle}</h2>
+          <p class="muted">{t.legendIntro}</p>
+          <ol class="legend">
+            {allergens.map((a) => <li><strong>{a.name}</strong>. {a.examples}.</li>)}
+          </ol>
+        </div>
+        <div>
+          <h2>{t.howTitle}</h2>
+          <ol class="how">
+            {t.how.map((h) => <li>{h}</li>)}
+          </ol>
+          <aside class="tip">
+            <h3>¿Y si los alérgenos vivieran en la carta?</h3>
+            <p>Con una carta digital, cada plato lleva sus alérgenos marcados. Cambias el plato y su información cambia con él, y el cliente la ve en su móvil antes de pedir.</p>
+            <p class="tip-links">
+              <a href="/carta-digital-qr/ejemplo/">Ver una carta de ejemplo</a>
+              <a href={services.carta.path}>Carta digital con QR</a>
+              <a href="/guias/alergenos-carta-restaurante/">Guía de alérgenos</a>
+            </p>
+          </aside>
+        </div>
+      </div>
+
+      <div class="no-print foot">
+        <p class="small muted">{t.disclaimer}</p>
+        <p class="small muted">
+          Fuentes:{' '}
+          {t.sources.map((s, i) => <>{i > 0 && ' · '}<a href={s.url} rel="noopener">{s.name}</a></>)}
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div class="no-print">
+    <ContactForm preselect="carta" heading={services.carta.contactHeading} />
+  </div>
+</Base>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-print-actions]').forEach((bar) => {
+    bar.hidden = false;
+    bar.addEventListener('click', (ev) => {
+      const btn = (ev.target as HTMLElement).closest<HTMLButtonElement>('[data-print]');
+      if (!btn) return;
+      const root = document.documentElement;
+      root.dataset.printOnly = btn.dataset.print;
+      window.addEventListener('afterprint', () => delete root.dataset.printOnly, { once: true });
+      window.print();
+    });
+  });
+</script>
+
+<style>
+  .crumbs {
+    font-size: var(--step--1);
+    color: var(--muted);
+    margin-bottom: var(--space-3);
+  }
+  h1 {
+    font-size: var(--step-5);
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+    font-weight: 750;
+    max-width: 18ch;
+  }
+  .lead {
+    margin-top: var(--space-3);
+    font-size: var(--step-1);
+    line-height: 1.5;
+    color: var(--muted);
+    max-width: 40rem;
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: var(--space-3);
+  }
+  .actions[hidden] {
+    display: none;
+  }
+
+  .sheet {
+    margin-top: var(--space-4);
+    padding: var(--space-3);
+    border: 2px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+  }
+  .sheet-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-3);
+    margin-bottom: var(--space-2);
+  }
+  .sheet-head h2 {
+    font-size: var(--step-2);
+    margin-right: auto;
+  }
+  .blank {
+    display: inline-block;
+    width: 14rem;
+    border-bottom: 1.5px solid var(--ink);
+  }
+  .blank.short {
+    width: 7rem;
+  }
+  .scroller {
+    overflow-x: auto;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 46rem;
+    font-size: var(--step--1);
+  }
+  th,
+  td {
+    border: 1px solid var(--line);
+    padding: 0;
+  }
+  th.dish,
+  td.dish {
+    width: 30%;
+    text-align: left;
+    padding: 0.3rem 0.5rem;
+  }
+  td {
+    height: 2.1rem;
+  }
+  th.al {
+    height: 8.5rem;
+    vertical-align: bottom;
+    padding: 0.4rem 0;
+  }
+  th.al span {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    white-space: nowrap;
+    margin-inline: auto;
+    display: block;
+    font-weight: 650;
+  }
+
+  .sign {
+    margin-top: var(--space-4);
+    padding: var(--space-4) var(--space-3);
+    border: 3px solid var(--bottle);
+    border-radius: var(--radius-l);
+    text-align: center;
+    background: var(--surface);
+  }
+  .sign-title {
+    font-size: var(--step-3);
+    font-weight: 750;
+  }
+  .sign-text {
+    margin: var(--space-2) auto 0;
+    font-size: var(--step-1);
+    max-width: 34rem;
+  }
+  .sign-note {
+    margin-top: var(--space-1);
+  }
+
+  .cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-5);
+    margin-top: var(--space-5);
+  }
+  .cols h2 {
+    font-size: var(--step-3);
+    margin-bottom: var(--space-2);
+  }
+  .legend,
+  .how {
+    margin: var(--space-2) 0 0;
+    padding-left: 1.4rem;
+    display: grid;
+    gap: 0.4rem;
+  }
+  .tip {
+    margin-top: var(--space-4);
+    padding: var(--space-3);
+    border-radius: var(--radius-l);
+    background: var(--tile);
+  }
+  .tip h3 {
+    font-size: var(--step-1);
+  }
+  .tip p {
+    margin-top: var(--space-1);
+  }
+  .tip-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.2rem;
+    font-weight: 650;
+  }
+  .foot {
+    margin-top: var(--space-4);
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  @media (max-width: 860px) {
+    .cols {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media print {
+    @page {
+      size: A4 landscape;
+      margin: 12mm;
+    }
+    :global(body > *:not(main)),
+    :global(main > *:not([data-print-root])),
+    .no-print {
+      display: none !important;
+    }
+    :global(html),
+    :global(body) {
+      background: white !important;
+      color: black !important;
+    }
+    .section {
+      padding: 0;
+    }
+    .wrap {
+      width: 100%;
+    }
+    .sheet,
+    .sign {
+      margin: 0;
+      border-color: black;
+      background: white;
+      color: black;
+    }
+    .sheet {
+      border: 0;
+      padding: 0;
+    }
+    .scroller {
+      overflow: visible;
+    }
+    table {
+      min-width: 0;
+    }
+    td {
+      height: 8.5mm;
+    }
+    th.al {
+      height: 30mm;
+    }
+    th,
+    td {
+      border-color: black;
+    }
+    .blank {
+      border-color: black;
+    }
+    .sign {
+      break-before: page;
+      min-height: 160mm;
+      display: grid;
+      place-content: center;
+      border-width: 4px;
+    }
+    .sign-title {
+      font-size: 40pt;
+    }
+    .sign-text {
+      font-size: 22pt;
+      max-width: 220mm;
+    }
+    :global(html[data-print-only='tabla']) .print-cartel,
+    :global(html[data-print-only='cartel']) .print-tabla {
+      display: none !important;
+    }
+    :global(html[data-print-only='cartel']) .sign {
+      break-before: auto;
+    }
+  }
+</style>

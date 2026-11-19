@@ -14,6 +14,7 @@ import FloorPlanDemo from '../components/FloorPlanDemo.astro';
       </div>
       <FloorPlanDemo />
       <p class="note">Ejemplo con un local y reservas inventados. El plano de tu local lo dibujamos juntos con tus mesas reales.</p>
+      <p class="calc-link">¿Cuánto te cuestan las reservas que no se presentan? <a href="/herramientas/calculadora-no-shows/">Calcúlalo con tus números</a></p>
     </div>
   </section>
 </ServicePage>
@@ -31,6 +32,10 @@ import FloorPlanDemo from '../components/FloorPlanDemo.astro';
     font-size: var(--step-1);
     line-height: 1.5;
     color: var(--muted);
+  }
+  .calc-link {
+    margin-top: var(--space-3);
+    font-weight: 600;
   }
   .note {
     margin-top: var(--space-2);
