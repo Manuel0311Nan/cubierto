@@ -54,10 +54,14 @@ export const site = {
     linkedin: '', // TODO: página de empresa
   },
 
-  /** Analítica sin cookies (Umami). Vacío = sin analítica. */
+  /**
+   * Analítica sin cookies (Umami Cloud). Las variables PUBLIC_UMAMI_* lo sobrescriben;
+   * déjalas vacías en .env para usar estos valores. Solo cuenta visitas del dominio de `url`
+   * (ni localhost ni previews de Vercel).
+   */
   umami: {
-    src: import.meta.env.PUBLIC_UMAMI_SRC ?? '',
-    websiteId: import.meta.env.PUBLIC_UMAMI_WEBSITE_ID ?? '',
+    src: import.meta.env.PUBLIC_UMAMI_SRC || 'https://cloud.umami.is/script.js',
+    websiteId: import.meta.env.PUBLIC_UMAMI_WEBSITE_ID || 'f814f029-7515-4c47-b8da-2f79f9623a03',
   },
 
   /** Datos legales para aviso legal y privacidad (LSSI y RGPD). */

@@ -59,6 +59,9 @@ const organization = {
 
 const graph = [organization, ...jsonLd];
 const umami = site.umami;
+// Umami compara el dominio exacto: se aceptan el dominio con y sin www.
+const host = new URL(site.url).hostname.replace(/^www\./, '');
+const umamiDomains = `${host},www.${host}`;
 ---
 
 <!doctype html>
@@ -93,7 +96,11 @@ const umami = site.umami;
 
     <script type="application/ld+json" set:html={JSON.stringify(graph)} />
 
-    {umami.src && umami.websiteId && <script defer src={umami.src} data-website-id={umami.websiteId} />}
+    {
+      umami.src && umami.websiteId && (
+        <script defer is:inline src={umami.src} data-website-id={umami.websiteId} data-domains={umamiDomains} />
+      )
+    }
   </head>
   <body>
     <a class="skip" href="#contenido">Saltar al contenido</a>

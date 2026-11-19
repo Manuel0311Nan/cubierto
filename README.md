@@ -85,6 +85,7 @@ Los botones "Pedir este plan" y "Quiero entrar en el piloto" llevan a `/contacto
 Gestor de consentimiento propio, sin dependencias (`src/components/CookieConsent.astro`, configurado en `src/config/cookies.ts`).
 
 - **Sin servicios con cookies no aparece ningún banner.** Ahora mismo la web no usa cookies que necesiten permiso (Umami no las usa), y la política de cookies lo dice.
+- Umami Cloud está activo por defecto (`umami` en `src/config/site.ts`; `PUBLIC_UMAMI_SRC` y `PUBLIC_UMAMI_WEBSITE_ID` lo sobrescriben). Solo cuenta visitas del dominio de producción (`data-domains`), así que `localhost` y las previews de Vercel no ensucian los datos.
 - Al rellenar `PUBLIC_GA_MEASUREMENT_ID` o `PUBLIC_META_PIXEL_ID` en `.env`, aparecen el banner, el enlace "Configurar cookies" en el pie y la tabla de cookies en `/cookies/`.
 - Los scripts de esos servicios se escriben bloqueados (`type="text/plain"`) y solo se ejecutan cuando el visitante acepta su categoría. Antes de aceptar no sale ninguna petición a Google ni a Meta.
 - Siguiendo la guía de cookies de la AEPD: Rechazar y Aceptar con el mismo peso visual en la primera capa, nada marcado por defecto, configuración por categorías y retirada del consentimiento siempre disponible. Al retirarlo se borran esas cookies y se recarga la página sin los scripts.
