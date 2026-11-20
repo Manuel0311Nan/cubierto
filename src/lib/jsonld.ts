@@ -1,5 +1,6 @@
 import type { Faq } from '../data/faq';
 import { site } from '../config/site';
+import { path, t, type Locale } from '../i18n';
 
 export const faqJsonLd = (items: Faq[]) => ({
   '@context': 'https://schema.org',
@@ -11,10 +12,10 @@ export const faqJsonLd = (items: Faq[]) => ({
   })),
 });
 
-export const breadcrumbJsonLd = (items: Array<{ name: string; path: string }>) => ({
+export const breadcrumbJsonLd = (items: Array<{ name: string; path: string }>, locale: Locale = 'es') => ({
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
-  itemListElement: [{ name: 'Inicio', path: '/' }, ...items].map((it, i) => ({
+  itemListElement: [{ name: t(locale).common.home, path: path('home', locale) }, ...items].map((it, i) => ({
     '@type': 'ListItem',
     position: i + 1,
     name: it.name,
@@ -29,7 +30,10 @@ export const serviceJsonLd = (opts: {
   price: number;
   /** Alta de pago único con IVA incluido, si la hay. */
   setup?: number;
-}) => ({
+  locale?: Locale;
+}) => {
+  const m = t(opts.locale ?? 'es').meta;
+  return {
   '@context': 'https://schema.org',
   '@type': 'Service',
   name: opts.name,
@@ -37,18 +41,18 @@ export const serviceJsonLd = (opts: {
   url: new URL(opts.path, site.url).href,
   provider: { '@id': `${site.url}/#negocio` },
   areaServed: site.areaServed.map(({ type, name }) => ({ '@type': type, name })),
-  audience: { '@type': 'BusinessAudience', name: 'Bares y restaurantes' },
+  audience: { '@type': 'BusinessAudience', name: m.audience },
   offers: [
     {
       '@type': 'Offer',
-      name: 'Cuota mensual',
+      name: m.offerMonthly,
       priceCurrency: 'EUR',
       price: opts.price,
       priceSpecification: {
         '@type': 'UnitPriceSpecification',
         price: opts.price,
         priceCurrency: 'EUR',
-        unitText: 'mes',
+        unitText: m.unitMonth,
         valueAddedTaxIncluded: false,
       },
     },
@@ -56,7 +60,7 @@ export const serviceJsonLd = (opts: {
       ? [
           {
             '@type': 'Offer',
-            name: 'Alta (pago único)',
+            name: m.offerSetup,
             priceCurrency: 'EUR',
             price: opts.setup,
             priceSpecification: {
@@ -69,7 +73,8 @@ export const serviceJsonLd = (opts: {
         ]
       : []),
   ],
-});
+  };
+};
 
 export const personId = `${site.url}/sobre-mi/#persona`;
 

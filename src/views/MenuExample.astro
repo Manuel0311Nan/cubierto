@@ -1,0 +1,436 @@
+---
+import Base from '../layouts/Base.astro';
+import ContactForm from '../components/ContactForm.astro';
+import { getExample } from '../data/ejemplo-carta';
+import { getAllergens, type AllergenKey } from '../data/alergenos';
+import { getServices } from '../data/services';
+import { getModules } from '../data/modules';
+import { breadcrumbJsonLd } from '../lib/jsonld';
+import { qrSvg } from '../lib/qr';
+import { getLocale, path, money2, t as dict } from '../i18n';
+
+const locale = getLocale(Astro);
+const tr = dict(locale);
+const e = tr.example;
+const { venue: v, page: t } = getExample(locale);
+const allergenByKey = getAllergens(locale).byKey;
+const services = getServices(locale);
+const cartaName = getModules(locale).find((m) => m.key === 'carta')!.name;
+const here = path('cartaEjemplo', locale);
+const eur = (n: number) => money2(n, locale);
+const filters: AllergenKey[] = ['gluten', 'leche', 'huevo', 'pescado'];
+// El QR en español es un archivo fijo (ya impreso); en otros idiomas se genera al compilar.
+const qr = locale === 'es' ? '/qr/carta-ejemplo.svg' : qrSvg(here);
+
+const jsonLd = [
+  breadcrumbJsonLd(
+    [
+      { name: cartaName, path: services.carta.path },
+      { name: e.crumb, path: here },
+    ],
+    locale,
+  ),
+];
+---
+
+<Base title={t.seoTitle} description={t.seoDescription} jsonLd={jsonLd}>
+  <section class="section intro">
+    <div class="wrap">
+      <nav class="crumbs" aria-label={tr.common.crumbs}>
+        <a href={path('home', locale)}>{tr.common.home}</a> <span aria-hidden="true">/</span>
+        <a href={services.carta.path}>{cartaName}</a> <span aria-hidden="true">/</span>
+        <span aria-current="page">{e.crumb}</span>
+      </nav>
+
+      <div class="grid">
+        <div class="head">
+          <h1>{t.h1}</h1>
+          <p class="lead">{t.intro}</p>
+
+          <div class="scan">
+            <img src={qr} width="164" height="164" alt={e.qrAlt} />
+            <div>
+              <h2>{t.scanTitle}</h2>
+              <p>{t.scanText}</p>
+            </div>
+          </div>
+          <p class="on-phone">{t.onPhone}</p>
+        </div>
+
+        <div class="menu" data-example-menu aria-label={e.menuLabel(v.name)} role="region">
+          <header class="venue">
+            <p class="venue-name">{v.name}</p>
+            <p class="venue-kind">{v.kind} · {e.menuWord}</p>
+          </header>
+
+          <div class="filters" role="group" aria-label={e.filtersLabel} hidden data-filters>
+            <span class="filters-label">{e.filtersText}</span>
+            {filters.map((f) => <button type="button" class="chip" aria-pressed="false" data-filter={f}>{allergenByKey[f].short}</button>)}
+          </div>
+
+          <div class="set-menu">
+            <div>
+              <p class="set-name">{v.setMenu.name}</p>
+              <p class="set-when">{v.setMenu.when}</p>
+              <p class="set-when">{v.setMenu.includes}</p>
+            </div>
+            <p class="set-price">{eur(v.setMenu.price)}</p>
+          </div>
+
+          {
+            v.sections.map((s) => (
+              <section class="menu-section">
+                <h2>{s.name}</h2>
+                <ul class="dishes">
+                  {s.dishes.map((d) => (
+                    <li class:list={['dish', { 'is-out': d.soldOut }]} data-allergens={d.allergens.join(' ')}>
+                      <div class="dish-main">
+                        <p class="dish-name">{d.name}</p>
+                        <p class="dish-price">{eur(d.price)}</p>
+                      </div>
+                      {d.description && <p class="dish-desc">{d.description}</p>}
+                      {d.soldOut && <p class="soldout">{e.soldOut}</p>}
+                      <ul class="allergens" aria-label={e.allergens}>
+                        {d.allergens.length === 0 && <li class="al al-none">{e.noAllergens}</li>}
+                        {d.allergens.map((a) => <li class="al">{allergenByKey[a].short}</li>)}
+                        {d.tags?.map((tag) => <li class="al al-tag">{tag}</li>)}
+                      </ul>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))
+          }
+          <p class="empty" hidden data-empty>{e.empty}</p>
+        </div>
+
+        <div class="rest">
+          <h2 class="visually-hidden">{e.restTitle}</h2>
+          <ul class="points">
+            {
+              t.points.map((p) => (
+                <li>
+                  <h3>{p.title}</h3>
+                  <p>{p.text}</p>
+                </li>
+              ))
+            }
+          </ul>
+
+          <div class="actions">
+            <a class="btn btn-primary" href="#contacto" data-umami-event="pedir-demo" data-umami-event-lugar="carta-ejemplo">{tr.common.askDemoMyMenu}</a>
+            <a class="btn btn-ghost" href={services.carta.path}>{tr.common.seeHow}</a>
+          </div>
+        </div>
+
+      </div>
+
+      <p class="note">{t.note}{e.noteBefore}<a href={path('tablaAlergenos', locale)}>{e.noteLink}</a>{e.noteAfter}</p>
+    </div>
+  </section>
+
+  <ContactForm preselect="carta" heading={services.carta.contactHeading} />
+</Base>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-example-menu]').forEach((menu) => {
+    const bar = menu.querySelector<HTMLElement>('[data-filters]');
+    const empty = menu.querySelector<HTMLElement>('[data-empty]');
+    if (!bar) return;
+    bar.hidden = false;
+    const active = new Set<string>();
+
+    bar.addEventListener('click', (ev) => {
+      const btn = (ev.target as HTMLElement).closest<HTMLButtonElement>('[data-filter]');
+      if (!btn) return;
+      const key = btn.dataset.filter!;
+      const on = !active.has(key);
+      on ? active.add(key) : active.delete(key);
+      btn.setAttribute('aria-pressed', String(on));
+
+      let visible = 0;
+      menu.querySelectorAll<HTMLElement>('.dish').forEach((dish) => {
+        const list = (dish.dataset.allergens ?? '').split(' ');
+        const hide = list.some((a) => active.has(a));
+        dish.hidden = hide;
+        if (!hide) visible++;
+      });
+      menu.querySelectorAll<HTMLElement>('.menu-section').forEach((sec) => {
+        sec.hidden = !sec.querySelector('.dish:not([hidden])');
+      });
+      if (empty) empty.hidden = visible > 0;
+    });
+  });
+</script>
+
+<style>
+  .crumbs {
+    font-size: var(--step--1);
+    color: var(--muted);
+    margin-bottom: var(--space-3);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    grid-template-areas: 'head menu' 'rest menu';
+    grid-template-rows: auto 1fr;
+    column-gap: var(--space-5);
+    align-items: start;
+  }
+  .head {
+    grid-area: head;
+  }
+  .rest {
+    grid-area: rest;
+  }
+  h1 {
+    font-size: var(--step-5);
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+    font-weight: 750;
+    max-width: 14ch;
+  }
+  .lead {
+    margin-top: var(--space-3);
+    font-size: var(--step-1);
+    line-height: 1.5;
+    color: var(--muted);
+    max-width: 36rem;
+  }
+  .scan {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+    margin-top: var(--space-4);
+    padding: var(--space-3);
+    border: 2px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+  }
+  .scan img {
+    flex: none;
+    border-radius: var(--radius-s);
+  }
+  .scan h2 {
+    font-size: var(--step-2);
+  }
+  .scan p {
+    margin-top: 0.4rem;
+    color: var(--muted);
+  }
+  .on-phone {
+    display: none;
+    margin-top: var(--space-3);
+    padding: var(--space-2);
+    border-left: 4px solid var(--saffron);
+    background: var(--tile);
+    font-weight: 600;
+  }
+  .points {
+    list-style: none;
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+  }
+  .points li {
+    padding-top: var(--space-2);
+    border-top: 4px solid var(--saffron);
+  }
+  .points h3 {
+    font-size: var(--step-1);
+  }
+  .points p {
+    margin-top: 0.4rem;
+    color: var(--muted);
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: var(--space-4);
+  }
+
+  /* La carta, como la ve el cliente */
+  .menu {
+    grid-area: menu;
+    position: sticky;
+    top: var(--space-2);
+    padding: var(--space-3);
+    border-radius: var(--radius-l);
+    border: 2px solid var(--line);
+    background: var(--surface);
+    box-shadow: 0 1.5rem 3rem -2rem color-mix(in srgb, var(--ink) 45%, transparent);
+  }
+  .venue {
+    padding-bottom: var(--space-2);
+    border-bottom: 2px solid var(--line);
+  }
+  .venue-name {
+    font-size: var(--step-3);
+    font-weight: 750;
+    letter-spacing: -0.02em;
+  }
+  .venue-kind {
+    color: var(--muted);
+    font-size: var(--step--1);
+  }
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: var(--space-2);
+  }
+  .filters[hidden] {
+    display: none;
+  }
+  .filters-label {
+    font-size: var(--step--1);
+    color: var(--muted);
+    margin-right: 0.2rem;
+  }
+  .chip {
+    font: inherit;
+    font-size: var(--step--1);
+    font-weight: 650;
+    min-height: 2.5rem;
+    padding: 0.3rem 0.85rem;
+    border-radius: 99px;
+    border: 2px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .chip[aria-pressed='true'] {
+    background: var(--bottle);
+    border-color: var(--bottle);
+    color: var(--bottle-ink);
+  }
+  .set-menu {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+    padding: var(--space-2);
+    border-radius: var(--radius-m);
+    background: var(--bottle);
+    color: var(--bottle-ink);
+  }
+  .set-name {
+    font-weight: 750;
+  }
+  .set-when {
+    font-size: var(--step--1);
+    opacity: 0.85;
+  }
+  .set-price {
+    font-size: var(--step-2);
+    font-weight: 750;
+    white-space: nowrap;
+    color: var(--saffron);
+  }
+  .menu-section {
+    margin-top: var(--space-3);
+  }
+  .menu-section h2 {
+    font-size: var(--step--1);
+    font-weight: 750;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+  .dishes {
+    list-style: none;
+    margin: 0.4rem 0 0;
+    padding: 0;
+  }
+  .dish {
+    padding-block: 0.7rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .dish-main {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-2);
+    align-items: baseline;
+  }
+  .dish-name {
+    font-weight: 650;
+  }
+  .dish-price {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    font-weight: 650;
+  }
+  .dish-desc {
+    font-size: var(--step--1);
+    color: var(--muted);
+  }
+  .is-out .dish-name,
+  .is-out .dish-price {
+    text-decoration: line-through;
+    color: var(--muted);
+  }
+  .soldout {
+    font-size: var(--step--1);
+    font-weight: 700;
+    color: var(--tomato);
+  }
+  .allergens {
+    list-style: none;
+    margin: 0.4rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+  .al {
+    font-size: 0.78rem;
+    font-weight: 650;
+    padding: 0.1rem 0.5rem;
+    border-radius: 99px;
+    background: var(--tile);
+    color: var(--ink);
+  }
+  .al-none,
+  .al-tag {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--muted);
+  }
+  .empty {
+    margin-top: var(--space-2);
+    color: var(--muted);
+  }
+  .note {
+    margin-top: var(--space-4);
+    font-size: var(--step--1);
+    color: var(--muted);
+    max-width: 48rem;
+  }
+
+  @media (max-width: 860px) {
+    .grid {
+      grid-template-columns: 1fr;
+      grid-template-areas: 'head' 'menu' 'rest';
+      grid-template-rows: auto;
+      row-gap: var(--space-4);
+    }
+    .menu {
+      position: static;
+    }
+    .points {
+      grid-template-columns: 1fr;
+    }
+  }
+  /* En el móvil no tiene sentido escanear la pantalla que ya tienes en la mano */
+  @media (max-width: 600px), (max-width: 860px) and (pointer: coarse) {
+    .scan {
+      display: none;
+    }
+    .on-phone {
+      display: block;
+    }
+  }
+</style>

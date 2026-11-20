@@ -2,6 +2,12 @@
 import Logo from './Logo.astro';
 import { site, nav } from '../config/site';
 import { consentRequired } from '../config/cookies';
+import { getLocale, path, t } from '../i18n';
+
+const locale = getLocale(Astro);
+const tr = t(locale);
+const f = tr.footer;
+const items = nav.map((key) => ({ href: path(key, locale), label: tr.nav[key] }));
 
 const year = new Date().getFullYear();
 ---
@@ -10,33 +16,33 @@ const year = new Date().getFullYear();
   <div class="wrap grid">
     <div class="brand">
       <Logo tone="light" />
-      <p>{site.tagline}. Desde {site.city}.</p>
+      <p>{f.from(tr.meta.tagline, site.city)}</p>
       <p><a href={`mailto:${site.contact.email}`}>{site.contact.email}</a></p>
       {site.contact.phone && <p><a href={`tel:${site.contact.phone}`} data-umami-event="llamar">{site.contact.phoneDisplay}</a></p>}
     </div>
 
-    <nav aria-label="Servicios">
-      <h2>Servicios</h2>
+    <nav aria-label={f.services}>
+      <h2>{f.services}</h2>
       <ul>
-        {nav.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
-        <li><a href="/guias/">Guías</a></li>
-        <li><a href="/herramientas/">Herramientas gratis</a></li>
-        <li><a href="/contacto/">Contacto</a></li>
+        {items.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
+        {locale === 'es' && <li><a href={path('guias', locale)}>{f.guides}</a></li>}
+        <li><a href={path('herramientas', locale)}>{f.tools}</a></li>
+        <li><a href={path('contacto', locale)}>{f.contact}</a></li>
       </ul>
     </nav>
 
-    <nav aria-label="Legal">
-      <h2>Legal</h2>
+    <nav aria-label={f.legal}>
+      <h2>{f.legal}</h2>
       <ul>
-        <li><a href="/aviso-legal/">Aviso legal</a></li>
-        <li><a href="/privacidad/">Privacidad</a></li>
-        <li><a href="/cookies/">Cookies</a></li>
-        {consentRequired && <li><button type="button" class="linklike" data-open-consent>Configurar cookies</button></li>}
+        <li><a href={path('avisoLegal', locale)} hreflang={locale === 'es' ? undefined : 'es'}>{f.legalNotice}{tr.common.inSpanish}</a></li>
+        <li><a href={path('privacidad', locale)} hreflang={locale === 'es' ? undefined : 'es'}>{f.privacy}{tr.common.inSpanish}</a></li>
+        <li><a href={path('cookies', locale)} hreflang={locale === 'es' ? undefined : 'es'}>{f.cookies}{tr.common.inSpanish}</a></li>
+        {consentRequired && <li><button type="button" class="linklike" data-open-consent>{f.cookieSettings}</button></li>}
       </ul>
     </nav>
   </div>
   <div class="wrap base">
-    <p>© {year} {site.name}. Hecho y alojado en Europa.</p>
+    <p>{f.madeIn(year, site.name)}</p>
   </div>
 </footer>
 

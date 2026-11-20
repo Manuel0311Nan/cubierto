@@ -1,0 +1,108 @@
+---
+import Base from '../layouts/Base.astro';
+import ModuleIcon from '../components/ModuleIcon.astro';
+import { getTools } from '../data/herramientas';
+import { breadcrumbJsonLd } from '../lib/jsonld';
+import { getLocale, path, t as dict } from '../i18n';
+
+const locale = getLocale(Astro);
+const tr = dict(locale);
+const { tools, toolsPage: t } = getTools(locale);
+---
+
+<Base title={t.seoTitle} description={t.seoDescription} jsonLd={[breadcrumbJsonLd([{ name: tr.tools.crumb, path: path('herramientas', locale) }], locale)]}>
+  <section class="section">
+    <div class="wrap">
+      <nav class="crumbs" aria-label={tr.common.crumbs}>
+        <a href={path('home', locale)}>{tr.common.home}</a> <span aria-hidden="true">/</span> <span aria-current="page">{tr.tools.crumb}</span>
+      </nav>
+      <h1>{t.h1}</h1>
+      <p class="lead">{t.intro}</p>
+
+      <ul class="list">
+        {
+          [
+            ...tools.map((x) => ({ href: path(x.route, locale), name: x.name, text: x.seoDescription, service: x.service })),
+            {
+              href: path('cartaEjemplo', locale),
+              name: tr.tools.exampleName,
+              text: tr.tools.exampleText,
+              service: 'carta' as const,
+            },
+          ].map((x) => (
+            <li>
+              <a class="item" href={x.href}>
+                <span class="icon"><ModuleIcon name={x.service} size={32} /></span>
+                <span>
+                  <h2>{x.name}</h2>
+                  <p>{x.text}</p>
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      {locale === 'es' && <p class="more">{tr.tools.moreBefore}<a href={path('guias', locale)}>{tr.tools.moreLink}</a>{tr.tools.moreAfter}</p>}
+    </div>
+  </section>
+</Base>
+
+<style>
+  .crumbs {
+    font-size: var(--step--1);
+    color: var(--muted);
+    margin-bottom: var(--space-3);
+  }
+  h1 {
+    font-size: var(--step-5);
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+    font-weight: 750;
+    max-width: 18ch;
+  }
+  .lead {
+    margin-top: var(--space-3);
+    font-size: var(--step-1);
+    color: var(--muted);
+    max-width: 40rem;
+  }
+  .list {
+    list-style: none;
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-2);
+    max-width: 48rem;
+  }
+  .item {
+    display: flex;
+    gap: var(--space-2);
+    align-items: flex-start;
+    padding: var(--space-3);
+    border: 2px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+    text-decoration: none;
+    color: inherit;
+  }
+  .item:hover {
+    border-color: var(--bottle);
+  }
+  .icon {
+    color: var(--strong);
+    flex: none;
+  }
+  h2 {
+    font-size: var(--step-2);
+  }
+  .item p {
+    margin-top: 0.4rem;
+    color: var(--muted);
+  }
+  .more {
+    margin-top: var(--space-4);
+  }
+  .more a {
+    font-weight: 650;
+  }
+</style>

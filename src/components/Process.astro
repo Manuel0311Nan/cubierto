@@ -1,29 +1,15 @@
 ---
-const steps = [
-  {
-    title: 'Hablamos 20 minutos',
-    text: 'Por teléfono o en tu local. Me cuentas cómo trabajas hoy y qué te quita tiempo: la carta, el teléfono de reservas, que no te encuentren en Google.',
-  },
-  {
-    title: 'Te enseño una demo con tus datos',
-    text: 'Monto tu carta o tu página de reservas con tu nombre y tus platos para que lo veas en tu propio móvil antes de pagar nada.',
-  },
-  {
-    title: 'Lo dejo funcionando en tu local',
-    text: 'Imprimo los QR, configuro horarios y mesas y te enseño a ti y a tu equipo. La carta, en un día; la web, en torno a una semana.',
-  },
-  {
-    title: 'Sigo contigo cada mes',
-    text: 'Copias de seguridad, actualizaciones y cambios pequeños incluidos. Si algo falla, me llamas a mí.',
-  },
-];
+import { getLocale, t } from '../i18n';
+
+const tr = t(getLocale(Astro)).process;
+const steps = tr.steps;
 ---
 
 <section class="section" id="como-empezamos" aria-labelledby="proceso-title">
   <div class="wrap">
     <div class="section-head">
-      <h2 id="proceso-title">Cómo empezamos</h2>
-      <p>Sin formularios eternos ni contratos de un año.</p>
+      <h2 id="proceso-title">{tr.title}</h2>
+      <p>{tr.intro}</p>
     </div>
     <ol class="steps">
       {

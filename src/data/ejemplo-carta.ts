@@ -1,4 +1,5 @@
 import type { AllergenKey } from './alergenos';
+import type { Locale } from '../i18n';
 
 /**
  * Carta de ejemplo de /carta-digital-qr/ejemplo/.
@@ -79,3 +80,14 @@ export const examplePage = {
   ],
   note: 'Casa Brezo y sus platos son inventados. En tu carta van tus platos, tus precios y tus alérgenos, que decides tú.',
 };
+
+export interface ExampleText {
+  venue: ExampleVenue;
+  page: typeof examplePage;
+}
+
+const es: ExampleText = { venue: exampleVenue, page: examplePage };
+const byLocale: Record<Locale, ExampleText> = { es, en: es, pt: es };
+
+/** Carta de ejemplo en un idioma: en inglés y portugués, la carta traducida (como haría MENU-07). */
+export const getExample = (locale: Locale) => byLocale[locale];

@@ -1,4 +1,6 @@
 ---
+import { getLocale, t } from '../i18n';
+
 /**
  * Demo interactiva del hero: a la izquierda el panel del dueño,
  * a la derecha la carta que ve el cliente en su móvil.
@@ -21,46 +23,50 @@ const allergenLabel: Record<string, { es: string; en: string }> = {
 };
 
 const eur = (n: number) => n.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+
+// El panel del dueño va en el idioma de la página. La carta del cliente es la de un restaurante
+// español: en español, con el interruptor para verla en inglés (como hará la traducción de la carta).
+const tr = t(getLocale(Astro)).menuDemo;
 ---
 
 <div class="demo" data-demo>
   <div class="panel" role="group" aria-labelledby="demo-panel-title">
-    <p class="panel-title" id="demo-panel-title">Tu panel, en el móvil</p>
+    <p class="panel-title" id="demo-panel-title">{tr.panelTitle}</p>
 
     <div class="row">
-      <span id="lbl-agotado">Croquetas agotadas</span>
+      <span id="lbl-agotado">{tr.soldOut}</span>
       <button class="switch" role="switch" aria-checked="false" aria-labelledby="lbl-agotado" data-action="soldout">
         <span class="knob"></span>
       </button>
     </div>
 
     <div class="row">
-      <span id="lbl-precio">Menú del día</span>
+      <span id="lbl-precio">{tr.setMenu}</span>
       <div class="stepper" role="group" aria-labelledby="lbl-precio">
-        <button type="button" data-action="price-down" aria-label="Bajar 50 céntimos">−</button>
+        <button type="button" data-action="price-down" aria-label={tr.priceDown}>−</button>
         <output data-price-out aria-live="polite">13,50 €</output>
-        <button type="button" data-action="price-up" aria-label="Subir 50 céntimos">+</button>
+        <button type="button" data-action="price-up" aria-label={tr.priceUp}>+</button>
       </div>
     </div>
 
     <div class="row">
-      <span id="lbl-en">Carta en inglés</span>
+      <span id="lbl-en">{tr.english}</span>
       <button class="switch" role="switch" aria-checked="false" aria-labelledby="lbl-en" data-action="lang">
         <span class="knob"></span>
       </button>
     </div>
 
-    <p class="panel-note">Guardado. Tus clientes ya lo ven.</p>
+    <p class="panel-note">{tr.saved}</p>
   </div>
 
-  <div class="phone" aria-label="Carta que ve el cliente">
+  <div class="phone" aria-label={tr.phone}>
     <div class="screen" data-lang="es">
       <div class="venue">
         <p class="venue-name">Casa Brezo</p>
         <p class="venue-sub"><span data-es>Carta</span><span data-en hidden>Menu</span></p>
       </div>
 
-      <div class="filters" role="group" aria-label="Filtrar carta">
+      <div class="filters" role="group" aria-label={tr.filter}>
         <button type="button" class="chip" aria-pressed="true" data-filter="all"><span data-es>Todo</span><span data-en hidden>All</span></button>
         <button type="button" class="chip" aria-pressed="false" data-filter="gluten"><span data-es>Sin gluten</span><span data-en hidden>Gluten free</span></button>
       </div>
@@ -87,7 +93,7 @@ const eur = (n: number) => n.toLocaleString('es-ES', { minimumFractionDigits: 2,
               </div>
               <p class="soldout" hidden><span data-es>Agotado hoy</span><span data-en hidden>Sold out today</span></p>
               {d.allergens.length > 0 && (
-                <ul class="allergens" aria-label="Alérgenos">
+                <ul class="allergens" aria-label={tr.allergens}>
                   {d.allergens.map((a) => (
                     <li class={`al al-${a}`}>
                       <span data-es>{allergenLabel[a].es}</span>

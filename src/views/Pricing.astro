@@ -1,0 +1,164 @@
+---
+import Base from '../layouts/Base.astro';
+import ModuleIcon from '../components/ModuleIcon.astro';
+import PackConfigurator from '../components/PackConfigurator.astro';
+import Faq from '../components/Faq.astro';
+import ContactForm from '../components/ContactForm.astro';
+import { getModules } from '../data/modules';
+import { getServices } from '../data/services';
+import { faqsFor } from '../data/faq';
+import { pricing } from '../config/site';
+import { faqJsonLd, breadcrumbJsonLd } from '../lib/jsonld';
+import { getLocale, path, money, t } from '../i18n';
+
+const locale = getLocale(Astro);
+const tr = t(locale);
+const p = tr.pricing;
+const modules = getModules(locale);
+const services = getServices(locale);
+const formatEuros = (n: number) => money(n, locale);
+const faqs = faqsFor('precios', locale);
+const sum = Object.values(pricing.monthly).reduce((a, b) => a + b, 0);
+const cheapest = Math.min(...Object.values(pricing.monthly));
+---
+
+<Base
+  title={p.title}
+  description={p.description(formatEuros(cheapest), formatEuros(pricing.pack))}
+  jsonLd={[breadcrumbJsonLd([{ name: p.crumb, path: path('precios', locale) }], locale), faqJsonLd(faqs)]}
+>
+  <section class="intro">
+    <div class="wrap">
+      <nav class="crumbs" aria-label={tr.common.crumbs}>
+        <a href={path('home', locale)}>{tr.common.home}</a> <span aria-hidden="true">/</span> <span aria-current="page">{p.crumb}</span>
+      </nav>
+      <h1>{p.h1}</h1>
+      <p class="lead">
+        {p.lead(formatEuros(pricing.pack), formatEuros(sum))}
+      </p>
+
+      <ul class="cards">
+        {
+          modules.map((m) => {
+            const s = services[m.key];
+            return (
+              <li class="card">
+                <span class="icon"><ModuleIcon name={m.key} size={32} /></span>
+                <h2>{m.name}</h2>
+                <p class="amount">
+                  {formatEuros(pricing.monthly[m.key])}
+                  <span> {tr.common.perMonth}</span>
+                </p>
+                {m.key === 'web' && <p class="setup">{tr.common.webSetup(formatEuros(pricing.webSetup))}</p>}
+                <ul class="included">
+                  {s.included.map((i) => <li>{i}</li>)}
+                </ul>
+                <a class="more" href={s.path}>{p.seeModule(m.name)}</a>
+              </li>
+            );
+          })
+        }
+      </ul>
+      <p class="pack-note">
+        <strong>{p.packLabel}</strong>{p.packNote(formatEuros(pricing.pack), formatEuros(pricing.packSetup))}
+      </p>
+      <p class="small muted vat">{tr.common.vatNote}</p>
+    </div>
+  </section>
+
+  <PackConfigurator />
+  <Faq items={faqs} />
+  <ContactForm heading={p.contactHeading} />
+</Base>
+
+<style>
+  .pack-note {
+    margin-top: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    border-left: 4px solid var(--saffron);
+    background: var(--tile);
+    max-width: 48rem;
+  }
+  .intro {
+    padding-block: var(--space-4) var(--space-5);
+  }
+  .crumbs {
+    font-size: var(--step--1);
+    color: var(--muted);
+    margin-bottom: var(--space-3);
+  }
+  h1 {
+    font-size: var(--step-5);
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+    font-weight: 750;
+    max-width: 18ch;
+  }
+  .lead {
+    margin-top: var(--space-3);
+    font-size: var(--step-1);
+    line-height: 1.5;
+    color: var(--muted);
+    max-width: 40rem;
+  }
+  .cards {
+    list-style: none;
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: var(--space-3);
+    border-radius: var(--radius-l);
+    background: var(--surface);
+    border: 2px solid var(--line);
+  }
+  .card .icon {
+    color: var(--strong);
+  }
+  .card h2 {
+    font-size: var(--step-2);
+  }
+  .amount {
+    font-size: var(--step-4);
+    font-weight: 750;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .amount span {
+    margin-left: 0.35rem;
+    font-size: var(--step-0);
+    font-weight: 500;
+    letter-spacing: 0;
+    color: var(--muted);
+  }
+  .setup {
+    color: var(--muted);
+    font-size: var(--step--1);
+  }
+  .included {
+    margin: 0.4rem 0 0;
+    padding-left: 1.1rem;
+    display: grid;
+    gap: 0.35rem;
+    flex: 1;
+  }
+  .more {
+    margin-top: 0.6rem;
+    font-weight: 650;
+  }
+  .vat {
+    margin-top: var(--space-2);
+  }
+
+  @media (max-width: 900px) {
+    .cards {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

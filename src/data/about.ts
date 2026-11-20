@@ -1,3 +1,5 @@
+import type { Locale } from '../i18n';
+
 /**
  * Tus datos para "Sobre mí".
  * Los textos entre corchetes son huecos para rellenar; no publiques con ellos.
@@ -79,3 +81,25 @@ export const publishedEducation = publishable(education);
 
 /** Nombre a mostrar: sin el apellido mientras siga pendiente. */
 export const displayName = hasPlaceholder(person.name) ? person.name.replace(/\s*\[[^\]]*\]/g, '') : person.name;
+
+export interface AboutText {
+  role: string;
+  intro: string;
+  promise: string;
+  experience: TimelineItem[];
+  education: TimelineItem[];
+}
+
+const es: AboutText = { role: person.role, intro: person.intro, promise: person.promise, experience, education };
+const byLocale: Record<Locale, AboutText> = { es, en: es, pt: es };
+
+/** "Sobre mí" en un idioma: nombre, foto y enlaces son los mismos; textos, experiencia y formación, traducidos. */
+export const getAbout = (locale: Locale) => {
+  const d = byLocale[locale];
+  return {
+    person: { ...person, role: d.role, intro: d.intro, promise: d.promise },
+    publishedExperience: publishable(d.experience),
+    publishedEducation: publishable(d.education),
+    displayName,
+  };
+};

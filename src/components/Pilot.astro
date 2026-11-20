@@ -1,6 +1,10 @@
 ---
-import { site, pricing, formatEuros } from '../config/site';
+import { site, pricing } from '../config/site';
+import { getLocale, path, money, t } from '../i18n';
+
 const { pilot } = site;
+const locale = getLocale(Astro);
+const p = t(locale).pilot;
 ---
 
 {
@@ -9,18 +13,18 @@ const { pilot } = site;
       <div class="wrap">
         <div class="pilot">
           <div>
-            <h2 id="piloto-title">Busco {pilot.spots} locales de {site.city} para empezar</h2>
+            <h2 id="piloto-title">{p.title(pilot.spots, site.city)}</h2>
             <p>
-              Estoy arrancando y quiero hacerlo bien: con pocos restaurantes, cerca, escuchando qué funciona en el servicio real. Si entras en el piloto:
+              {p.intro}
             </p>
             <ul>
-              <li>El primer mes, con web, carta QR y reservas, por {formatEuros(pilot.firstMonth)} IVA incluido, alta incluida (en lugar de {formatEuros(pricing.packSetup)}).</li>
-              <li>Después, la cuota normal del pack: {formatEuros(pricing.pack)} al mes más IVA, sin permanencia.</li>
-              <li>Lo que me pidas durante el piloto entra antes en el producto.</li>
-              <li>Te lo instalo y te enseño en persona.</li>
+              <li>{p.firstMonth(money(pilot.firstMonth, locale), money(pricing.packSetup, locale))}</li>
+              <li>{p.after(money(pricing.pack, locale))}</li>
+              <li>{p.feedback}</li>
+              <li>{p.inPerson}</li>
             </ul>
           </div>
-          <a class="btn btn-primary" href="/contacto/?motivo=piloto" data-umami-event="pedir-demo" data-umami-event-lugar="piloto">Quiero entrar en el piloto</a>
+          <a class="btn btn-primary" href={`${path('contacto', locale)}?motivo=piloto`} data-umami-event="pedir-demo" data-umami-event-lugar="piloto">{p.cta}</a>
         </div>
       </div>
     </section>

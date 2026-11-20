@@ -1,11 +1,12 @@
 ---
 import type { Faq } from '../data/faq';
+import { getLocale, t } from '../i18n';
 
 interface Props {
   items: Faq[];
   title?: string;
 }
-const { items, title = 'Preguntas frecuentes' } = Astro.props;
+const { items, title = t(getLocale(Astro)).faq.title } = Astro.props;
 ---
 
 <section class="section" id="preguntas" aria-labelledby="faq-title">

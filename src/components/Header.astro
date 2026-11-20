@@ -1,22 +1,27 @@
 ---
 import Logo from './Logo.astro';
 import { nav } from '../config/site';
+import { getLocale, path, t } from '../i18n';
 
-const path = Astro.url.pathname;
+const current = Astro.url.pathname;
+const locale = getLocale(Astro);
+const tr = t(locale);
+const items = nav.map((key) => ({ href: path(key, locale), label: tr.nav[key] }));
+const contact = path('contacto', locale);
 ---
 
 <header class="header">
   <div class="wrap bar">
-    <a href="/" class="home">
+    <a href={path('home', locale)} class="home">
       <Logo />
     </a>
 
-    <nav class="desktop" aria-label="Principal">
+    <nav class="desktop" aria-label={tr.header.main}>
       <ul>
         {
-          nav.map((item) => (
+          items.map((item) => (
             <li>
-              <a href={item.href} aria-current={path === item.href ? 'page' : undefined}>
+              <a href={item.href} aria-current={current === item.href ? 'page' : undefined}>
                 {item.label}
               </a>
             </li>
@@ -25,24 +30,24 @@ const path = Astro.url.pathname;
       </ul>
     </nav>
 
-    <a class="btn btn-primary cta" href="/contacto/" data-umami-event="pedir-demo" data-umami-event-lugar="cabecera">Pedir una demo</a>
+    <a class="btn btn-primary cta" href={contact} data-umami-event="pedir-demo" data-umami-event-lugar="cabecera">{tr.common.askDemo}</a>
 
     <details class="mobile">
-      <summary aria-label="Abrir menú">
+      <summary aria-label={tr.header.openMenu}>
         <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
           <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
         </svg>
       </summary>
-      <nav aria-label="Principal móvil">
+      <nav aria-label={tr.header.mainMobile}>
         <ul>
           {
-            nav.map((item) => (
+            items.map((item) => (
               <li>
                 <a href={item.href}>{item.label}</a>
               </li>
             ))
           }
-          <li><a class="btn btn-primary" href="/contacto/" data-umami-event="pedir-demo" data-umami-event-lugar="menu-movil">Pedir una demo</a></li>
+          <li><a class="btn btn-primary" href={contact} data-umami-event="pedir-demo" data-umami-event-lugar="menu-movil">{tr.common.askDemo}</a></li>
         </ul>
       </nav>
     </details>

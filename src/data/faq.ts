@@ -1,4 +1,5 @@
 import { site, pricing, formatEuros } from '../config/site';
+import type { Locale } from '../i18n';
 
 export interface Faq {
   q: string;
@@ -118,4 +119,6 @@ export const faqs: Faq[] = [
   },
 ];
 
-export const faqsFor = (page: Faq['on'][number]) => faqs.filter((f) => f.on.includes(page));
+const byLocale: Record<Locale, Faq[]> = { es: faqs, en: faqs, pt: faqs };
+
+export const faqsFor = (page: Faq['on'][number], locale: Locale = 'es') => byLocale[locale].filter((f) => f.on.includes(page));

@@ -1,21 +1,6 @@
 ---
-import Base from '../layouts/Base.astro';
-import ContactForm from '../components/ContactForm.astro';
-import { site } from '../config/site';
-import { breadcrumbJsonLd } from '../lib/jsonld';
+// Contenido en src/views/Contact.astro (el mismo para todos los idiomas).
+import View from '../views/Contact.astro';
 ---
 
-<Base
-  title="Pedir una demo"
-  description={`Pide una demo de carta QR, reservas o web para tu bar o restaurante en ${site.city}. Te respondo en menos de 24 horas laborables.`}
-  jsonLd={[breadcrumbJsonLd([{ name: 'Contacto', path: '/contacto/' }])]}
->
-  <div class="spacer"></div>
-  <ContactForm heading="Pide una demo con tu carta" level="h1" />
-</Base>
-
-<style>
-  .spacer {
-    height: var(--space-2);
-  }
-</style>
+<View />

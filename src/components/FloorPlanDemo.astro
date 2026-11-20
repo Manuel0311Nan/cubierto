@@ -1,4 +1,7 @@
 ---
+import { getLocale, t } from '../i18n';
+import type { Dict } from '../i18n/es';
+
 /**
  * Demo del plano de sala del módulo de reservas.
  * SVG estático generado en build + un script pequeño que cambia estados.
@@ -8,7 +11,7 @@
 type Shape = 'round' | 'square' | 'long';
 interface Table {
   id: number;
-  zone: 'Terraza' | 'Sala';
+  zone: 'terrace' | 'room';
   shape: Shape;
   seats: number;
   x: number; // centro
@@ -22,37 +25,50 @@ interface Booking {
   name: string;
   note?: string;
 }
+type NoteKey = keyof Dict['floorPlan']['notes'];
+type NameKey = keyof Dict['floorPlan']['names'];
+/** Reserva de ejemplo tal como se escribe aquí: nombres propios tal cual; notas y nombres de grupo, por clave traducida. */
+type BookingSrc = Omit<Booking, 'name' | 'note'> & { name: string | { key: NameKey }; note?: NoteKey };
+
+const tr = t(getLocale(Astro)).floorPlan;
+const fillText = (s: string, vars: Record<string, string | number>) => s.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? ''));
 
 const tables: Table[] = [
-  { id: 1, zone: 'Terraza', shape: 'round', seats: 2, x: 85, y: 130 },
-  { id: 2, zone: 'Terraza', shape: 'round', seats: 2, x: 175, y: 130 },
-  { id: 3, zone: 'Terraza', shape: 'round', seats: 2, x: 85, y: 245 },
-  { id: 4, zone: 'Terraza', shape: 'round', seats: 2, x: 175, y: 245 },
-  { id: 5, zone: 'Terraza', shape: 'square', seats: 4, x: 130, y: 370 },
-  { id: 6, zone: 'Sala', shape: 'square', seats: 4, x: 320, y: 180 },
-  { id: 7, zone: 'Sala', shape: 'square', seats: 4, x: 440, y: 180 },
-  { id: 8, zone: 'Sala', shape: 'square', seats: 4, x: 560, y: 180 },
-  { id: 9, zone: 'Sala', shape: 'square', seats: 4, x: 320, y: 300 },
-  { id: 10, zone: 'Sala', shape: 'square', seats: 4, x: 440, y: 300 },
-  { id: 11, zone: 'Sala', shape: 'long', seats: 6, x: 650, y: 300 },
-  { id: 12, zone: 'Sala', shape: 'long', seats: 8, x: 400, y: 410 },
+  { id: 1, zone: 'terrace', shape: 'round', seats: 2, x: 85, y: 130 },
+  { id: 2, zone: 'terrace', shape: 'round', seats: 2, x: 175, y: 130 },
+  { id: 3, zone: 'terrace', shape: 'round', seats: 2, x: 85, y: 245 },
+  { id: 4, zone: 'terrace', shape: 'round', seats: 2, x: 175, y: 245 },
+  { id: 5, zone: 'terrace', shape: 'square', seats: 4, x: 130, y: 370 },
+  { id: 6, zone: 'room', shape: 'square', seats: 4, x: 320, y: 180 },
+  { id: 7, zone: 'room', shape: 'square', seats: 4, x: 440, y: 180 },
+  { id: 8, zone: 'room', shape: 'square', seats: 4, x: 560, y: 180 },
+  { id: 9, zone: 'room', shape: 'square', seats: 4, x: 320, y: 300 },
+  { id: 10, zone: 'room', shape: 'square', seats: 4, x: 440, y: 300 },
+  { id: 11, zone: 'room', shape: 'long', seats: 6, x: 650, y: 300 },
+  { id: 12, zone: 'room', shape: 'long', seats: 8, x: 400, y: 410 },
 ];
 
-const bookings: Booking[] = [
+const bookingsSrc: BookingSrc[] = [
   { tables: [6], start: '13:00', minutes: 120, people: 4, name: 'Marta G.' },
-  { tables: [5], start: '13:00', minutes: 120, people: 3, name: 'Javier P.', note: 'Viene con perro' },
+  { tables: [5], start: '13:00', minutes: 120, people: 3, name: 'Javier P.', note: 'dog' },
   { tables: [1], start: '13:30', minutes: 90, people: 2, name: 'Andrea R.' },
-  { tables: [9], start: '13:30', minutes: 120, people: 3, name: 'Familia Ortega', note: 'Necesitan trona' },
+  { tables: [9], start: '13:30', minutes: 120, people: 3, name: { key: 'ortega' }, note: 'highChair' },
   { tables: [3], start: '14:00', minutes: 90, people: 2, name: 'Luis M.' },
-  { tables: [7], start: '14:00', minutes: 120, people: 4, name: 'Carmen S.', note: 'Cumpleaños: sacar la tarta con vela' },
-  { tables: [11], start: '14:30', minutes: 120, people: 6, name: 'Taller Henares', note: 'Piden factura a nombre de la empresa' },
+  { tables: [7], start: '14:00', minutes: 120, people: 4, name: 'Carmen S.', note: 'birthdayCake' },
+  { tables: [11], start: '14:30', minutes: 120, people: 6, name: 'Taller Henares', note: 'invoice' },
   { tables: [2], start: '21:00', minutes: 90, people: 2, name: 'Paula y Dani' },
   { tables: [4], start: '21:00', minutes: 90, people: 2, name: 'Sergio L.' },
-  { tables: [12], start: '21:00', minutes: 150, people: 8, name: 'Cena de antiguos alumnos' },
-  { tables: [8], start: '21:30', minutes: 120, people: 4, name: 'Elena V.', note: 'Primera vez, mesa tranquila' },
+  { tables: [12], start: '21:00', minutes: 150, people: 8, name: { key: 'alumni' } },
+  { tables: [8], start: '21:30', minutes: 120, people: 4, name: 'Elena V.', note: 'quiet' },
   { tables: [6], start: '22:00', minutes: 120, people: 4, name: 'Rubén A.' },
-  { tables: [9, 10], start: '21:00', minutes: 150, people: 8, name: 'Cumpleaños de Lucía', note: 'Traen su propia tarta' },
+  { tables: [9, 10], start: '21:00', minutes: 150, people: 8, name: { key: 'lucia' }, note: 'ownCake' },
 ];
+const bookings: Booking[] = bookingsSrc.map(({ name, note, ...b }) => ({
+  ...b,
+  name: typeof name === 'string' ? name : tr.names[name.key],
+  ...(note ? { note: tr.notes[note] } : {}),
+}));
+const zones = { terrace: tr.terrace, room: tr.room };
 
 const times = ['13:00', '14:00', '15:00', '21:00', '22:00'];
 const initialTime = '14:00';
@@ -96,12 +112,34 @@ const joins = bookings
     return { key: b.tables.join('-'), x: Math.min(...xs), y: Math.min(...ys), w: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys), ids: b.tables };
   });
 
-const data = JSON.stringify({ tables, bookings, initialTime });
+const data = JSON.stringify({ tables: tables.map((x) => ({ ...x, zone: zones[x.zone] })), bookings, initialTime });
+// Textos para el script, con huecos {así}.
+const text = JSON.stringify({
+  statusFree: tr.statusFree,
+  statusSoon: tr.statusSoon,
+  statusSeated: tr.statusSeated,
+  tableAria: tr.tableAria,
+  who: tr.who,
+  summaryOne: tr.summaryOne,
+  summaryMany: tr.summaryMany,
+  tablesJoined: tr.tablesJoined,
+  tableOne: tr.tableOne,
+  walkIn: tr.walkIn,
+  freeTable: tr.freeTable,
+  freeTables: tr.freeTables,
+  seat: tr.seat,
+  seatWalkIn: tr.seatWalkIn,
+  person: tr.person,
+  people: tr.people,
+  freeUntil: tr.freeUntil,
+  freeRest: tr.freeRest,
+  hint: tr.hint,
+});
 ---
 
-<div class="fp" data-floorplan={data}>
+<div class="fp" data-floorplan={data} data-text={text}>
   <div class="fp-bar">
-    <div class="fp-times" role="group" aria-label="Hora del servicio">
+    <div class="fp-times" role="group" aria-label={tr.times}>
       {
         times.map((t) => (
           <button type="button" class="fp-time" data-time={t} aria-pressed={t === initialTime ? 'true' : 'false'}>
@@ -110,33 +148,33 @@ const data = JSON.stringify({ tables, bookings, initialTime });
         ))
       }
     </div>
-    <ul class="fp-legend" aria-label="Leyenda">
-      <li><span class="sw sw-free"></span>Libre</li>
-      <li><span class="sw sw-soon"></span>Reservada, llega en menos de 1 h</li>
-      <li><span class="sw sw-seated"></span>En mesa</li>
+    <ul class="fp-legend" aria-label={tr.legend}>
+      <li><span class="sw sw-free"></span>{tr.free}</li>
+      <li><span class="sw sw-soon"></span>{tr.soon}</li>
+      <li><span class="sw sw-seated"></span>{tr.seated}</li>
     </ul>
   </div>
 
   <div class="fp-body">
     <div class="fp-scroll">
-    <svg class="fp-plan" viewBox="0 0 800 500" role="group" aria-label="Plano de sala de Casa Brezo">
+    <svg class="fp-plan" viewBox="0 0 800 500" role="group" aria-label={tr.planLabel}>
       <!-- Estructura del local -->
       <rect x="20" y="20" width="760" height="460" rx="14" class="wall"></rect>
       <rect x="20" y="20" width="210" height="460" rx="14" class="terrace"></rect>
-      <text x="40" y="52" class="zone">Terraza</text>
-      <text x="252" y="52" class="zone">Sala</text>
+      <text x="40" y="52" class="zone">{tr.terrace}</text>
+      <text x="252" y="52" class="zone">{tr.room}</text>
       <rect x="600" y="20" width="180" height="120" class="room"></rect>
-      <text x="690" y="86" class="room-label" text-anchor="middle">Cocina</text>
+      <text x="690" y="86" class="room-label" text-anchor="middle">{tr.kitchen}</text>
       <rect x="300" y="64" width="260" height="34" rx="6" class="bar"></rect>
-      <text x="430" y="86" class="room-label" text-anchor="middle">Barra</text>
+      <text x="430" y="86" class="room-label" text-anchor="middle">{tr.bar}</text>
       <line x1="520" y1="480" x2="600" y2="480" class="door"></line>
-      <text x="560" y="470" class="door-label" text-anchor="middle">Entrada</text>
+      <text x="560" y="470" class="door-label" text-anchor="middle">{tr.entrance}</text>
 
       {
         tables.map((t) => {
           const { w, h } = size(t);
           return (
-            <g class="table is-free" data-table={t.id} role="button" tabindex="0" aria-label={`Mesa ${t.id}, ${t.seats} plazas, libre`}>
+            <g class="table is-free" data-table={t.id} role="button" tabindex="0" aria-label={fillText(tr.tableAria, { id: t.id, seats: t.seats, status: tr.statusFree })}>
               {chairs(t).map((c) => (
                 <rect class="chair" x={c.x} y={c.y} width={c.w} height={c.h} rx="4" />
               ))}
@@ -169,12 +207,12 @@ const data = JSON.stringify({ tables, bookings, initialTime });
       }
     </svg>
     </div>
-    <p class="fp-swipe">Desliza el plano para ver todo el local.</p>
+    <p class="fp-swipe">{tr.swipe}</p>
 
     <aside class="fp-side">
       <p class="fp-summary" data-summary aria-live="polite"></p>
       <div class="fp-detail" data-detail aria-live="polite">
-        <p class="fp-hint">Toca una mesa para ver su reserva.</p>
+        <p class="fp-hint">{tr.hint}</p>
       </div>
     </aside>
   </div>
@@ -191,9 +229,12 @@ const data = JSON.stringify({ tables, bookings, initialTime });
     return h * 60 + m;
   };
   const toHHMM = (min: number) => `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
-  const statusLabel: Record<Status, string> = { free: 'libre', soon: 'reservada', seated: 'en mesa' };
+  const fill = (s: string, vars: Record<string, string | number>) =>
+    s.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? ''));
 
   document.querySelectorAll<HTMLElement>('[data-floorplan]').forEach((root) => {
+    const tx = JSON.parse(root.dataset.text!) as Record<string, string>;
+    const statusLabel: Record<Status, string> = { free: tx.statusFree, soon: tx.statusSoon, seated: tx.statusSeated };
     const { tables, bookings, initialTime } = JSON.parse(root.dataset.floorplan!) as {
       tables: Table[];
       bookings: Booking[];
@@ -242,8 +283,8 @@ const data = JSON.stringify({ tables, bookings, initialTime });
         g.classList.remove('is-free', 'is-soon', 'is-seated');
         g.classList.add(`is-${s.status}`);
         g.classList.toggle('is-selected', highlighted.includes(t.id));
-        const who = s.booking && !s.walkIn ? `, ${s.booking.name} a las ${s.booking.start}` : '';
-        g.setAttribute('aria-label', `Mesa ${t.id}, ${t.seats} plazas, ${statusLabel[s.status]}${s.status === 'free' ? '' : who}`);
+        const who = s.booking && !s.walkIn ? fill(tx.who, { name: s.booking.name, time: s.booking.start }) : '';
+        g.setAttribute('aria-label', fill(tx.tableAria, { id: t.id, seats: t.seats, status: statusLabel[s.status] }) + (s.status === 'free' ? '' : who));
         g.setAttribute('aria-pressed', String(highlighted.includes(t.id)));
         if (s.status === 'seated') {
           inUse++;
@@ -268,13 +309,13 @@ const data = JSON.stringify({ tables, bookings, initialTime });
         j.classList.toggle('is-active', Boolean(active));
         j.classList.toggle('is-selected', Boolean(active) && highlighted.includes(ids[0]));
       });
-      summary.innerHTML = `<strong>A las ${toHHMM(now)}</strong>: ${inUse} de ${tables.length} mesas en uso, ${covers} personas sentadas y ${soon} ${soon === 1 ? 'reserva llega' : 'reservas llegan'} en la próxima hora.`;
+      summary.innerHTML = fill(soon === 1 ? tx.summaryOne : tx.summaryMany, { time: toHHMM(now), inUse, total: tables.length, covers, soon });
       renderDetail();
     };
 
     const renderDetail = () => {
       if (selected === null) {
-        detail.innerHTML = '<p class="fp-hint">Toca una mesa para ver su reserva.</p>';
+        detail.innerHTML = `<p class="fp-hint">${tx.hint}</p>`;
         return;
       }
       const t = tables.find((x) => x.id === selected)!;
@@ -283,29 +324,29 @@ const data = JSON.stringify({ tables, bookings, initialTime });
       const seats = group.reduce((acc, id) => acc + tables.find((x) => x.id === id)!.seats, 0);
       const head =
         group.length > 1
-          ? `<p class="fp-table">Mesas ${group.join(' + ')} <span>Juntas · ${t.zone} · ${seats} plazas</span></p>`
-          : `<p class="fp-table">Mesa ${t.id} <span>${t.zone} · ${t.seats} plazas</span></p>`;
+          ? `<p class="fp-table">${fill(tx.tablesJoined, { ids: group.join(' + '), zone: t.zone, seats })}</p>`
+          : `<p class="fp-table">${fill(tx.tableOne, { id: t.id, zone: t.zone, seats: t.seats })}</p>`;
       let body = '';
       let action = '';
       if (s.walkIn) {
-        body = '<p>Cliente sin reserva, sentado ahora.</p>';
-        action = '<button type="button" class="fp-btn" data-act="free">Liberar mesa</button>';
+        body = `<p>${tx.walkIn}</p>`;
+        action = `<button type="button" class="fp-btn" data-act="free">${tx.freeTable}</button>`;
       } else if (s.booking && s.status !== 'free') {
         const b = s.booking;
         body = `<p class="fp-name">${b.name}</p>
-          <p>${b.start} · ${b.people} ${b.people === 1 ? 'persona' : 'personas'}</p>
+          <p>${b.start} · ${b.people} ${b.people === 1 ? tx.person : tx.people}</p>
           ${b.note ? `<p class="fp-note">${b.note}</p>` : ''}`;
         const plural = group.length > 1;
         action =
           s.status === 'soon'
-            ? '<button type="button" class="fp-btn" data-act="seat">Han llegado: sentar</button>'
-            : `<button type="button" class="fp-btn" data-act="free">${plural ? 'Liberar las mesas' : 'Liberar mesa'}</button>`;
+            ? `<button type="button" class="fp-btn" data-act="seat">${tx.seat}</button>`
+            : `<button type="button" class="fp-btn" data-act="free">${plural ? tx.freeTables : tx.freeTable}</button>`;
       } else {
         const later = bookings
           .filter((b) => b.tables.includes(t.id) && toMin(b.start) > now)
           .sort((a, b) => toMin(a.start) - toMin(b.start))[0];
-        body = later ? `<p>Libre ahora. Próxima reserva a las ${later.start}.</p>` : '<p>Libre el resto del turno.</p>';
-        action = '<button type="button" class="fp-btn" data-act="walkin">Sentar a alguien sin reserva</button>';
+        body = later ? `<p>${fill(tx.freeUntil, { time: later.start })}</p>` : `<p>${tx.freeRest}</p>`;
+        action = `<button type="button" class="fp-btn" data-act="walkin">${tx.seatWalkIn}</button>`;
       }
       detail.innerHTML = `${head}${body}${action}`;
     };
