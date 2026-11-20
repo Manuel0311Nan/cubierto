@@ -48,12 +48,12 @@ export const faqs: Faq[] = [
   },
   {
     q: '¿Cuánto cuesta una página web para un restaurante?',
-    a: `El alta, que incluye el diseño y la puesta en marcha, es un pago único desde ${formatEuros(pricing.webSetupFrom)} ${vat}. Después, ${formatEuros(pricing.monthly.web)} al mes ${vat} con hosting, dominio, copias de seguridad y cambios pequeños incluidos. Si contratas los tres módulos, el alta del pack completo es de ${formatEuros(pricing.packSetup)} con IVA incluido.`,
+    a: `El alta, que incluye el diseño y la puesta en marcha, es un pago único de ${formatEuros(pricing.webSetup)} con IVA incluido. Después, ${formatEuros(pricing.monthly.web)} al mes ${vat} con hosting, dominio, copias de seguridad y cambios pequeños incluidos. Si contratas los tres módulos, el alta del pack completo es de ${formatEuros(pricing.packSetup)} con IVA incluido y además cubre el primer mes.`,
     on: ['web', 'precios'],
   },
   {
     q: '¿Cuánto cuesta el pack completo?',
-    a: `Los tres módulos (web, carta QR y reservas) cuestan ${formatEuros(pricing.pack)} al mes ${vat}, más un alta única de ${formatEuros(pricing.packSetup)} con IVA incluido. Sin permanencia: si un día dejas un módulo, pasas a pagar solo los que sigas usando.`,
+    a: `Los tres módulos (web, carta QR y reservas) cuestan ${formatEuros(pricing.pack)} al mes ${vat}, más un alta única de ${formatEuros(pricing.packSetup)} con IVA incluido que ya cubre el primer mes: la primera cuota se paga el segundo mes. Sin permanencia: si un día dejas un módulo, pasas a pagar solo los que sigas usando.`,
     on: ['precios'],
   },
   {
@@ -68,7 +68,7 @@ export const faqs: Faq[] = [
   },
   {
     q: '¿Hay permanencia?',
-    a: 'No. Pagas mes a mes y das de baja un módulo cuando quieras. Lo único que se paga una vez es el alta de la web, porque incluye el diseño y la puesta en marcha.',
+    a: 'No. Pagas mes a mes y das de baja un módulo cuando quieras. Lo único que se paga una vez es el alta de la web o del pack completo, porque incluye el diseño y la puesta en marcha.',
     on: ['home', 'web', 'precios'],
   },
   {

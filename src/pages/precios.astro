@@ -42,7 +42,7 @@ const cheapest = Math.min(...Object.values(pricing.monthly));
                   {formatEuros(pricing.monthly[m.key])}
                   <span> al mes</span>
                 </p>
-                {m.key === 'web' && <p class="setup">+ alta desde {formatEuros(pricing.webSetupFrom)}, pago único</p>}
+                {m.key === 'web' && <p class="setup">+ alta de {formatEuros(pricing.webSetup)} IVA incluido, pago único</p>}
                 <ul class="included">
                   {s.included.map((i) => <li>{i}</li>)}
                 </ul>
@@ -53,7 +53,7 @@ const cheapest = Math.min(...Object.values(pricing.monthly));
         }
       </ul>
       <p class="pack-note">
-        <strong>Pack completo:</strong> los tres módulos por {formatEuros(pricing.pack)} al mes y un alta única de {formatEuros(pricing.packSetup)} IVA incluido, con la web incluida.
+        <strong>Pack completo:</strong> los tres módulos por {formatEuros(pricing.pack)} al mes y un alta única de {formatEuros(pricing.packSetup)} IVA incluido, con la web y el primer mes incluidos.
       </p>
       <p class="small muted vat">{pricing.vatNote}</p>
     </div>

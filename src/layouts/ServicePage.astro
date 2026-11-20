@@ -27,7 +27,7 @@ const jsonLd = [
     description: s.seoDescription,
     path: s.path,
     price,
-    setupFrom: s.key === 'web' ? pricing.webSetupFrom : undefined,
+    setup: s.key === 'web' ? pricing.webSetup : undefined,
   }),
   breadcrumbJsonLd([{ name: mod.name, path: s.path }]),
   faqJsonLd(faqs),
@@ -52,7 +52,7 @@ const jsonLd = [
         <aside class="price-card" aria-label="Precio">
           <span class="icon"><ModuleIcon name={s.key} size={40} /></span>
           <p class="amount">{formatEuros(price)}<span> al mes</span></p>
-          {s.key === 'web' && <p class="setup">+ alta desde {formatEuros(pricing.webSetupFrom)}, pago único</p>}
+          {s.key === 'web' && <p class="setup">+ alta de {formatEuros(pricing.webSetup)} IVA incluido, pago único</p>}
           <ul>
             {s.included.map((i) => <li>{i}</li>)}
           </ul>
