@@ -34,7 +34,7 @@ import { pricing, formatEuros } from '../config/site';
                 <span class="amount">{formatEuros(pricing.monthly[m.key])}</span>
                 <span class="per">al mes</span>
               </p>
-              {m.key === 'web' && <p class="setup">+ alta desde {formatEuros(pricing.webSetupFrom)}</p>}
+              {m.key === 'web' && <p class="setup">+ alta de {formatEuros(pricing.webSetup)} IVA incluido</p>}
               <a href={m.href}>Ver cómo funciona</a>
             </div>
           </li>

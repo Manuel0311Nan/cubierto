@@ -52,7 +52,7 @@ const jsonLd = [
             <p>{service.intro}</p>
             <p class="price">
               {formatEuros(pricing.monthly[d.service])} al mes
-              {d.service === 'web' && <> + alta desde {formatEuros(pricing.webSetupFrom)}, pago único</>}. Sin permanencia.
+              {d.service === 'web' && <> + alta de {formatEuros(pricing.webSetup)} IVA incluido, pago único</>}. Sin permanencia.
             </p>
             <div class="cta-actions">
               <a class="btn btn-primary" href={service.path}>Ver cómo funciona</a>

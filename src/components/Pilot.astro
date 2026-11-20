@@ -1,7 +1,6 @@
 ---
 import { site, pricing, formatEuros } from '../config/site';
 const { pilot } = site;
-const freeMonthsText = pilot.freeMonths === 1 ? 'El primer mes de cuota, gratis' : `Los ${pilot.freeMonths} primeros meses de cuota, gratis`;
 ---
 
 {
@@ -15,8 +14,8 @@ const freeMonthsText = pilot.freeMonths === 1 ? 'El primer mes de cuota, gratis'
               Estoy arrancando y quiero hacerlo bien: con pocos restaurantes, cerca, escuchando qué funciona en el servicio real. Si entras en el piloto:
             </p>
             <ul>
-              <li>{freeMonthsText}. Después, la cuota normal, igual para todos.</li>
-              <li>Si contratas la web, el alta te sale por {formatEuros(pilot.webSetup)} en lugar de {formatEuros(pricing.webSetupFrom)}.</li>
+              <li>El primer mes, con web, carta QR y reservas, por {formatEuros(pilot.firstMonth)} IVA incluido, alta incluida (en lugar de {formatEuros(pricing.packSetup)}).</li>
+              <li>Después, la cuota normal del pack: {formatEuros(pricing.pack)} al mes más IVA, sin permanencia.</li>
               <li>Lo que me pidas durante el piloto entra antes en el producto.</li>
               <li>Te lo instalo y te enseño en persona.</li>
             </ul>

@@ -27,8 +27,8 @@ export const serviceJsonLd = (opts: {
   description: string;
   path: string;
   price: number;
-  /** Alta de pago único, si la hay (precio "desde"). */
-  setupFrom?: number;
+  /** Alta de pago único con IVA incluido, si la hay. */
+  setup?: number;
 }) => ({
   '@context': 'https://schema.org',
   '@type': 'Service',
@@ -52,17 +52,18 @@ export const serviceJsonLd = (opts: {
         valueAddedTaxIncluded: false,
       },
     },
-    ...(opts.setupFrom
+    ...(opts.setup
       ? [
           {
             '@type': 'Offer',
             name: 'Alta (pago único)',
             priceCurrency: 'EUR',
+            price: opts.setup,
             priceSpecification: {
               '@type': 'PriceSpecification',
-              minPrice: opts.setupFrom,
+              price: opts.setup,
               priceCurrency: 'EUR',
-              valueAddedTaxIncluded: false,
+              valueAddedTaxIncluded: true,
             },
           },
         ]

@@ -15,7 +15,7 @@ export const modules: ServiceModule[] = [
     key: 'carta',
     name: 'Carta digital con QR',
     href: '/carta-digital-qr/',
-    pitch: 'Cambias un precio o marcas un plato como agotado desde el móvil, y tus clientes lo ven al momento. Sin reimprimir.',
+    pitch: 'Cambias un precio o marcas un plato como agotado desde el móvil, y tus clientes lo ven al momento. La carta en papel sale igual de actualizada.',
     highlights: [
       'Los 14 alérgenos obligatorios con iconos y filtro',
       'Menú del día que aparece solo a su hora',
