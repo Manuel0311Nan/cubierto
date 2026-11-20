@@ -1,22 +1,35 @@
 ---
 import Logo from './Logo.astro';
 import { nav } from '../config/site';
+import { getLocale, path, t, locales, localeInfo } from '../i18n';
+import { alternatesOf } from '../i18n/routes';
 
-const path = Astro.url.pathname;
+const current = Astro.url.pathname;
+const locale = getLocale(Astro);
+const tr = t(locale);
+const items = nav.map((key) => ({ href: path(key, locale), label: tr.nav[key] }));
+const contact = path('contacto', locale);
+// Selector de idioma: la misma página en el otro idioma o, si no está traducida (guías, legales), su portada.
+const alternates = alternatesOf(current);
+const languages = locales.map((l) => ({
+  locale: l,
+  href: alternates.find((a) => a.locale === l)?.href ?? path('home', l),
+  ...localeInfo[l],
+}));
 ---
 
-<header class="header">
+<header class="header" data-locale={locale}>
   <div class="wrap bar">
-    <a href="/" class="home">
+    <a href={path('home', locale)} class="home">
       <Logo />
     </a>
 
-    <nav class="desktop" aria-label="Principal">
+    <nav class="desktop" aria-label={tr.header.main}>
       <ul>
         {
-          nav.map((item) => (
+          items.map((item) => (
             <li>
-              <a href={item.href} aria-current={path === item.href ? 'page' : undefined}>
+              <a href={item.href} aria-current={current === item.href ? 'page' : undefined}>
                 {item.label}
               </a>
             </li>
@@ -25,24 +38,49 @@ const path = Astro.url.pathname;
       </ul>
     </nav>
 
-    <a class="btn btn-primary cta" href="/contacto/" data-umami-event="pedir-demo" data-umami-event-lugar="cabecera">Pedir una demo</a>
+    <ul class="langs desktop-langs" aria-label={tr.common.language}>
+      {
+        languages.map((l) => (
+          <li>
+            <a href={l.href} hreflang={l.htmlLang} lang={l.htmlLang} title={l.name} aria-current={l.locale === locale ? 'true' : undefined}>
+              <abbr title={l.name}>{l.short}</abbr>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <a class="btn btn-primary cta" href={contact} data-umami-event="pedir-demo" data-umami-event-lugar="cabecera">{tr.common.askDemo}</a>
 
     <details class="mobile">
-      <summary aria-label="Abrir menú">
+      <summary aria-label={tr.header.openMenu}>
         <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
           <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
         </svg>
       </summary>
-      <nav aria-label="Principal móvil">
+      <nav aria-label={tr.header.mainMobile}>
         <ul>
           {
-            nav.map((item) => (
+            items.map((item) => (
               <li>
                 <a href={item.href}>{item.label}</a>
               </li>
             ))
           }
-          <li><a class="btn btn-primary" href="/contacto/" data-umami-event="pedir-demo" data-umami-event-lugar="menu-movil">Pedir una demo</a></li>
+          <li class="mobile-langs">
+            <ul class="langs" aria-label={tr.common.language}>
+              {
+                languages.map((l) => (
+                  <li>
+                    <a href={l.href} hreflang={l.htmlLang} lang={l.htmlLang} aria-current={l.locale === locale ? 'true' : undefined}>
+                      {l.name}
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </li>
+          <li><a class="btn btn-primary" href={contact} data-umami-event="pedir-demo" data-umami-event-lugar="menu-movil">{tr.common.askDemo}</a></li>
         </ul>
       </nav>
     </details>
@@ -78,6 +116,7 @@ const path = Astro.url.pathname;
   .desktop a {
     text-decoration: none;
     font-weight: 550;
+    white-space: nowrap;
   }
   .desktop a:hover,
   .desktop a[aria-current='page'] {
@@ -85,7 +124,48 @@ const path = Astro.url.pathname;
     text-decoration-color: var(--saffron);
     text-decoration-thickness: 3px;
   }
+  .langs {
+    display: flex;
+    gap: 0.15rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: var(--step--1);
+    font-weight: 650;
+  }
+  .langs a {
+    display: inline-block;
+    padding: 0.35rem 0.45rem;
+    border-radius: var(--radius-s);
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .langs abbr {
+    text-decoration: none;
+  }
+  .langs a:hover {
+    color: var(--ink);
+  }
+  .langs a[aria-current='true'] {
+    color: var(--ink);
+    background: var(--tile);
+  }
+  .mobile .langs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    padding-top: var(--space-2);
+    font-size: var(--step-0);
+  }
+  .mobile .langs a {
+    padding: 0.5rem 0.7rem;
+    border: 2px solid var(--line);
+  }
+  .mobile .langs a[aria-current='true'] {
+    border-color: var(--ink);
+  }
   .cta {
+    white-space: nowrap;
     min-height: 2.6rem;
     padding: 0.5rem 1.1rem;
   }
@@ -116,7 +196,7 @@ const path = Astro.url.pathname;
     display: grid;
     gap: 0.25rem;
   }
-  .mobile li a:not(.btn) {
+  .mobile li a:not(.btn, [hreflang]) {
     display: block;
     padding: 0.7rem 0;
     font-size: var(--step-1);
@@ -129,8 +209,18 @@ const path = Astro.url.pathname;
     width: 100%;
   }
 
-  @media (max-width: 860px) {
+  /* Inglés y portugués tienen etiquetas más largas: pasan antes al menú desplegable (español, por debajo de 960 px). */
+  @media (max-width: 1100px) {
+    .header:not([data-locale='es']) :is(.desktop, .desktop-langs, .cta) {
+      display: none;
+    }
+    .header:not([data-locale='es']) .mobile {
+      display: block;
+    }
+  }
+  @media (max-width: 960px) {
     .desktop,
+    .desktop-langs,
     .cta {
       display: none;
     }

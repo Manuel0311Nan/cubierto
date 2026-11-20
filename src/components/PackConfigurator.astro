@@ -1,29 +1,44 @@
 ---
-import { modules } from '../data/modules';
-import { pricing, formatEuros } from '../config/site';
+import { getModules } from '../data/modules';
+import { pricing } from '../config/site';
+import { getLocale, localeInfo, path, money, fill, t } from '../i18n';
 
+const locale = getLocale(Astro);
+const tr = t(locale);
+const p = tr.pack;
+const modules = getModules(locale);
 const sum = Object.values(pricing.monthly).reduce((a, b) => a + b, 0);
 const data = JSON.stringify({ monthly: pricing.monthly, pack: pricing.pack, setup: pricing.webSetup, packSetup: pricing.packSetup });
+// Textos para el script, con huecos {amount}.
+const text = JSON.stringify({
+  intl: localeInfo[locale].intl,
+  savings: p.savings,
+  setupPack: p.setupPack,
+  setupWeb: p.setupWeb,
+  none: p.none,
+  addMissing: p.addMissing,
+  addMore: p.addMore,
+});
 ---
 
 <section class="pricing" id="precios" aria-labelledby="precios-title">
   <div class="wrap inner">
     <div class="copy">
-      <h2 id="precios-title">Elige qué necesitas y mira lo que pagarías</h2>
-      <p>Cada parte se contrata suelta. Con las tres juntas pagas {formatEuros(pricing.pack)} al mes en lugar de {formatEuros(sum)}.</p>
-      <p class="note">{pricing.vatNote}</p>
+      <h2 id="precios-title">{p.title}</h2>
+      <p>{p.intro(money(pricing.pack, locale), money(sum, locale))}</p>
+      <p class="note">{tr.common.vatNote}</p>
     </div>
 
-    <form class="calc" data-calc={data} action="/contacto/" method="get">
+    <form class="calc" data-calc={data} data-text={text} action={path('contacto', locale)} method="get">
       <fieldset>
-        <legend class="visually-hidden">Módulos</legend>
+        <legend class="visually-hidden">{p.legend}</legend>
         {
           modules.map((m) => (
             <label class="opt">
               <input type="checkbox" name="plan" value={m.key} checked />
               <span class="box" aria-hidden="true" />
               <span class="opt-name">{m.name}</span>
-              <span class="opt-price">{formatEuros(pricing.monthly[m.key])}/mes</span>
+              <span class="opt-price">{money(pricing.monthly[m.key], locale)}{tr.common.perMonthShort}</span>
             </label>
           ))
         }
@@ -31,23 +46,24 @@ const data = JSON.stringify({ monthly: pricing.monthly, pack: pricing.pack, setu
 
       <div class="result" aria-live="polite">
         <p class="total">
-          <span data-total>{formatEuros(pricing.pack)}</span>
-          <span class="per">al mes</span>
+          <span data-total>{money(pricing.pack, locale)}</span>
+          <span class="per">{tr.common.perMonth}</span>
         </p>
-        <p class="detail" data-detail>Precio de pack: ahorras {formatEuros(sum - pricing.pack)} al mes.</p>
-        <p class="detail" data-setup>Alta del pack completo: {formatEuros(pricing.packSetup)} IVA incluido, pago único con el primer mes incluido.</p>
+        <p class="detail" data-detail>{fill(p.savings, { amount: money(sum - pricing.pack, locale) })}</p>
+        <p class="detail" data-setup>{fill(p.setupPack, { amount: money(pricing.packSetup, locale) })}</p>
       </div>
 
-      <button class="btn btn-primary" type="submit" data-submit>Pedir este plan</button>
+      <button class="btn btn-primary" type="submit" data-submit>{p.submit}</button>
     </form>
   </div>
 </section>
 
 <script>
-  const fmt = (n: number) =>
-    new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
-
   document.querySelectorAll<HTMLFormElement>('[data-calc]').forEach((form) => {
+    const tx = JSON.parse(form.dataset.text!) as Record<'intl' | 'savings' | 'setupPack' | 'setupWeb' | 'none' | 'addMissing' | 'addMore', string>;
+    const fmt = (n: number) =>
+      new Intl.NumberFormat(tx.intl, { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+    const fill = (s: string, amount: number) => s.replace('{amount}', fmt(amount));
     const cfg = JSON.parse(form.dataset.calc!) as {
       monthly: Record<string, number>;
       pack: number;
@@ -69,20 +85,15 @@ const data = JSON.stringify({ monthly: pricing.monthly, pack: pricing.pack, setu
       total.textContent = fmt(price);
       submit.disabled = chosen.length === 0;
       setup.hidden = !chosen.includes('web') && !isPack;
-      setup.textContent = isPack
-        ? `Alta del pack completo: ${fmt(cfg.packSetup)} IVA incluido, pago único con el primer mes incluido.`
-        : `Alta de la web: ${fmt(cfg.setup)} IVA incluido, pago único.`;
+      setup.textContent = isPack ? fill(tx.setupPack, cfg.packSetup) : fill(tx.setupWeb, cfg.setup);
 
       if (chosen.length === 0) {
-        detail.textContent = 'Marca al menos un módulo.';
+        detail.textContent = tx.none;
       } else if (isPack) {
-        detail.textContent = `Precio de pack: ahorras ${fmt(sum - cfg.pack)} al mes.`;
+        detail.textContent = fill(tx.savings, sum - cfg.pack);
       } else {
         const missing = boxes.length - chosen.length;
-        detail.textContent =
-          missing === 1
-            ? `Añade el que falta y pagarías ${fmt(cfg.pack)} por los tres.`
-            : 'Puedes añadir más módulos cuando quieras.';
+        detail.textContent = missing === 1 ? fill(tx.addMissing, cfg.pack) : tx.addMore;
       }
     };
 

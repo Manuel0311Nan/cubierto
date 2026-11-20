@@ -1,0 +1,76 @@
+---
+import ServicePage from '../layouts/ServicePage.astro';
+import { getLocale, path, t } from '../i18n';
+import { qrSvg } from '../lib/qr';
+
+const locale = getLocale(Astro);
+const c = t(locale).cartaPage;
+const example = path('cartaEjemplo', locale);
+// El QR en español es un archivo fijo (ya impreso en tarjetas); en otros idiomas se genera al compilar.
+const qr = locale === 'es' ? '' : qrSvg(example);
+---
+
+<ServicePage service="carta">
+  <section slot="demo" class="section example" aria-labelledby="ejemplo-title">
+    <div class="wrap box">
+      {
+        qr ? (
+          <img src={qr} width="132" height="132" alt={c.qrAlt} loading="lazy" />
+        ) : (
+          <img src="/qr/carta-ejemplo.svg" width="132" height="132" alt={c.qrAlt} loading="lazy" />
+        )
+      }
+      <div>
+        <h2 id="ejemplo-title">{c.title}</h2>
+        <p>{c.text}</p>
+        <p class="links">
+          <a class="btn btn-ghost" href={example}>{c.seeExample}</a>
+          <a href={path('tablaAlergenos', locale)}>{c.allergenSheet}</a>
+          <a href={path('generadorQr', locale)}>{c.qrGenerator}</a>
+        </p>
+      </div>
+    </div>
+  </section>
+</ServicePage>
+
+<style>
+  .example {
+    padding-top: 0;
+  }
+  .box {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+  }
+  .box > div {
+    padding: var(--space-3);
+    border-radius: var(--radius-l);
+    background: var(--tile);
+    flex: 1;
+  }
+  img {
+    flex: none;
+    border-radius: var(--radius-s);
+  }
+  h2 {
+    font-size: var(--step-3);
+  }
+  p {
+    margin-top: var(--space-1);
+    max-width: 44rem;
+    color: var(--muted);
+  }
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+    font-weight: 650;
+  }
+  @media (max-width: 720px) {
+    img {
+      display: none;
+    }
+  }
+</style>

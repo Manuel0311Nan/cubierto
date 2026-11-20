@@ -1,4 +1,7 @@
 import type { ModuleKey } from '../config/site';
+import { path, type Locale } from '../i18n';
+import { modules as modulesEn } from './en/modules';
+import { modules as modulesPt } from './pt/modules';
 
 export interface ServiceModule {
   key: ModuleKey;
@@ -14,7 +17,7 @@ export const modules: ServiceModule[] = [
   {
     key: 'carta',
     name: 'Carta digital con QR',
-    href: '/carta-digital-qr/',
+    href: path('carta', 'es'),
     pitch: 'Cambias un precio o marcas un plato como agotado desde el móvil, y tus clientes lo ven al momento. La carta en papel sale igual de actualizada.',
     highlights: [
       'Los 14 alérgenos obligatorios con iconos y filtro',
@@ -26,7 +29,7 @@ export const modules: ServiceModule[] = [
   {
     key: 'reservas',
     name: 'Reservas online',
-    href: '/reservas-online/',
+    href: path('reservas', 'es'),
     pitch: 'Tus clientes reservan a cualquier hora desde tu web, Instagram o Google. Tú ves el día entero en una pantalla y se acabaron las dobles reservas.',
     highlights: [
       'Confirmación por email al momento',
@@ -38,7 +41,7 @@ export const modules: ServiceModule[] = [
   {
     key: 'web',
     name: 'Web con mantenimiento',
-    href: '/web-para-restaurantes/',
+    href: path('web', 'es'),
     pitch: 'Una web rápida con tu dominio, pensada para que te encuentren en Google cuando alguien busca dónde comer en tu zona.',
     highlights: [
       'Tú cambias textos, fotos y horarios cuando quieras',
@@ -48,3 +51,8 @@ export const modules: ServiceModule[] = [
     ],
   },
 ];
+
+const byLocale: Record<Locale, ServiceModule[]> = { es: modules, en: modulesEn, pt: modulesPt };
+
+/** Resumen de los módulos en un idioma (mismo orden en todos). */
+export const getModules = (locale: Locale) => byLocale[locale];

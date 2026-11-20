@@ -3,6 +3,7 @@
  * Funciones puras (sin red ni variables de entorno) para que el endpoint quede fino.
  */
 import { modules } from '../data/modules';
+import { locales, type Locale } from '../i18n/config';
 
 export interface Lead {
   name: string;
@@ -12,6 +13,8 @@ export interface Lead {
   interest: string[];
   message: string;
   source: string;
+  /** Idioma de la web desde la que escribió (es, en o pt): para responderle en su idioma. */
+  locale: Locale;
 }
 
 export type ParseResult = { ok: true; lead: Lead } | { ok: false; reason: string };
@@ -41,6 +44,7 @@ export function parseLead(input: unknown): ParseResult {
       : [],
     message: clean(b.message, 1500),
     source: clean(b.source, 200),
+    locale: (locales as readonly string[]).includes(String(b.locale)) ? (b.locale as Locale) : 'es',
   };
 
   if (lead.name.length < 2 || lead.venue.length < 2) return { ok: false, reason: 'name' };
@@ -50,7 +54,9 @@ export function parseLead(input: unknown): ParseResult {
   return { ok: true, lead };
 }
 
-/** Asunto, HTML y texto del email que te llega a ti. */
+const languageName: Record<Locale, string> = { es: 'español', en: 'inglés', pt: 'portugués' };
+
+/** Asunto, HTML y texto del email que te llega a ti (siempre en español; si escribió en otro idioma, lo dice). */
 export function buildLeadEmail(lead: Lead, receivedAt = new Date()) {
   const interestText = lead.interest.map(interestName).join(', ');
   const isPilot = /piloto/i.test(lead.source);
@@ -58,12 +64,15 @@ export function buildLeadEmail(lead: Lead, receivedAt = new Date()) {
   const waNumber = digits.length === 9 ? `34${digits}` : digits;
   const when = receivedAt.toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
 
-  const subject = `${isPilot ? '[Piloto] ' : ''}Nuevo contacto: ${lead.venue}${interestText ? ` (${interestText})` : ''}`;
+  const lang = lead.locale === 'es' ? '' : `[${lead.locale.toUpperCase()}] `;
+  const subject = `${lang}${isPilot ? '[Piloto] ' : ''}Nuevo contacto: ${lead.venue}${interestText ? ` (${interestText})` : ''}`;
+  const langNote = lead.locale === 'es' ? '' : `Escribió desde la web en ${languageName[lead.locale]}: respóndele en ${languageName[lead.locale]}.`;
 
   const row = (k: string, v: string) =>
     `<tr><td style="padding:6px 12px 6px 0;color:#4B6158;vertical-align:top">${k}</td><td style="padding:6px 0">${v}</td></tr>`;
   const html = `<div style="font-family:system-ui,sans-serif;color:#14281F;font-size:15px">
 <h2 style="margin:0 0 12px;font-size:18px">${esc(subject)}</h2>
+${langNote ? `<p style="margin:0 0 12px;padding:8px 12px;background:#FDF3DC;border-radius:8px">${esc(langNote)}</p>` : ''}
 <table style="border-collapse:collapse">
 ${row('Nombre', esc(lead.name))}
 ${row('Local', esc(lead.venue))}
@@ -78,6 +87,7 @@ ${row('Recibido', esc(when))}
 
   const text = [
     subject,
+    ...(langNote ? ['', langNote] : []),
     '',
     `Nombre: ${lead.name}`,
     `Local: ${lead.venue}`,

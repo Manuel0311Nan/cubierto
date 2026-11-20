@@ -1,6 +1,7 @@
 ---
 import { site } from '../config/site';
-import { modules } from '../data/modules';
+import { getModules } from '../data/modules';
+import { getLocale, path, t } from '../i18n';
 
 interface Props {
   /** Módulo que viene marcado por defecto (en las páginas de servicio). */
@@ -9,7 +10,27 @@ interface Props {
   /** Nivel del título: h1 en /contacto/, h2 dentro de otras páginas. */
   level?: 'h1' | 'h2';
 }
-const { preselect, heading = 'Cuéntame qué necesitas', level = 'h2' } = Astro.props;
+const locale = getLocale(Astro);
+const c = t(locale).contact;
+const pilotPrefill = t(locale).pilot.prefill;
+const modules = getModules(locale);
+const { preselect, heading = c.heading, level = 'h2' } = Astro.props;
+// Textos para el script del navegador.
+const text = JSON.stringify({
+  errConsent: c.errConsent,
+  errPhone: c.errPhone,
+  errName: c.errName,
+  errSend: c.errSend,
+  sending: c.sending,
+  submit: c.submit,
+  pilot: pilotPrefill,
+  mailSubject: c.mailSubject,
+  mailName: c.mailName,
+  mailVenue: c.mailVenue,
+  mailPhone: c.mailPhone,
+  mailEmail: c.mailEmail,
+  mailInterest: c.mailInterest,
+});
 const Heading = level;
 const endpoint = site.contact.formEndpoint;
 const wa = site.contact.whatsapp;
@@ -19,11 +40,11 @@ const wa = site.contact.whatsapp;
   <div class="wrap grid">
     <div class="side">
       <Heading class="title" id="contacto-title">{heading}</Heading>
-      <p>Te respondo en menos de 24 horas laborables, normalmente el mismo día. Si prefieres, te llamo yo en el hueco que me digas.</p>
+      <p>{c.intro}</p>
       <ul class="direct">
         <li><a href={`mailto:${site.contact.email}`}>{site.contact.email}</a></li>
-        {site.contact.phone && <li><a href={`tel:${site.contact.phone}`} data-umami-event="llamar">{site.contact.phoneDisplay}</a></li>}
-        {wa && <li><a href={`https://wa.me/${wa}`} rel="noopener">Escribir por WhatsApp</a></li>}
+        {site.contact.phone && <li><a href={`tel:${site.contact.phone}`} data-umami-event="llamar">{locale === 'es' ? site.contact.phoneDisplay : site.contact.phoneDisplayIntl}</a></li>}
+        {wa && <li><a href={`https://wa.me/${wa}`} rel="noopener">{c.whatsapp}</a></li>}
       </ul>
     </div>
 
@@ -32,6 +53,7 @@ const wa = site.contact.whatsapp;
       data-contact
       data-endpoint={endpoint}
       data-email={site.contact.email}
+      data-text={text}
       action={endpoint || `mailto:${site.contact.email}`}
       method="post"
       enctype={endpoint ? undefined : 'text/plain'}
@@ -39,28 +61,28 @@ const wa = site.contact.whatsapp;
     >
       <div class="two">
         <div class="field">
-          <label for="cf-name">Tu nombre</label>
+          <label for="cf-name">{c.name}</label>
           <input id="cf-name" name="name" autocomplete="name" required maxlength="80" />
         </div>
         <div class="field">
-          <label for="cf-venue">Nombre del local</label>
+          <label for="cf-venue">{c.venue}</label>
           <input id="cf-venue" name="venue" autocomplete="organization" required maxlength="100" />
         </div>
       </div>
 
       <div class="two">
         <div class="field">
-          <label for="cf-phone">Teléfono</label>
+          <label for="cf-phone">{c.phone}</label>
           <input id="cf-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required pattern="[+0-9 ]{9,16}" />
         </div>
         <div class="field">
-          <label for="cf-email">Email <span class="opt">(opcional)</span></label>
+          <label for="cf-email">{c.email} <span class="opt">{c.optional}</span></label>
           <input id="cf-email" name="email" type="email" autocomplete="email" maxlength="120" />
         </div>
       </div>
 
       <fieldset class="field">
-        <legend>Qué te interesa</legend>
+        <legend>{c.interest}</legend>
         <div class="checks">
           {
             modules.map((m) => (
@@ -74,28 +96,31 @@ const wa = site.contact.whatsapp;
       </fieldset>
 
       <div class="field">
-        <label for="cf-msg">Mensaje <span class="opt">(opcional)</span></label>
-        <textarea id="cf-msg" name="message" rows="4" maxlength="1500" placeholder="Por ejemplo: tenemos 14 mesas y las reservas las cogemos por teléfono."></textarea>
+        <label for="cf-msg">{c.message} <span class="opt">{c.optional}</span></label>
+        <textarea id="cf-msg" name="message" rows="4" maxlength="1500" placeholder={c.placeholder}></textarea>
       </div>
 
       <div class="hp" aria-hidden="true">
-        <label for="cf-company">No rellenes este campo</label>
+        <label for="cf-company">{c.honeypot}</label>
         <input id="cf-company" name="company" tabindex="-1" autocomplete="off" />
       </div>
       <input type="hidden" name="source" value="" data-source />
+      <input type="hidden" name="locale" value={locale} />
 
       <label class="check consent">
         <input type="checkbox" name="consent" value="yes" required />
-        <span>He leído la <a href="/privacidad/">política de privacidad</a> y acepto que uséis mis datos para responderme.</span>
+        <span>{c.consentBefore}<a href={path('privacidad', locale)} hreflang={locale === 'es' ? undefined : 'es'}>{c.consentLink}</a>{c.consentAfter}</span>
       </label>
+
+      {c.privacyNote(site.legal.holder, site.legal.email) && <p class="privacy-note">{c.privacyNote(site.legal.holder, site.legal.email)}</p>}
 
       <p class="error" data-error role="alert" hidden></p>
 
-      <button class="btn btn-primary" type="submit" data-submit>Enviar mensaje</button>
+      <button class="btn btn-primary" type="submit" data-submit>{c.submit}</button>
 
       <div class="ok" data-ok hidden tabindex="-1">
-        <p class="ok-title">Mensaje enviado</p>
-        <p>Gracias. Te escribo o te llamo en menos de 24 horas laborables.</p>
+        <p class="ok-title">{c.okTitle}</p>
+        <p>{c.okText}</p>
       </div>
     </form>
   </div>
@@ -105,6 +130,7 @@ const wa = site.contact.whatsapp;
   document.querySelectorAll<HTMLFormElement>('form[data-contact]').forEach((form) => {
     const endpoint = form.dataset.endpoint ?? '';
     const email = form.dataset.email ?? '';
+    const tx = JSON.parse(form.dataset.text!) as Record<string, string>;
     const error = form.querySelector<HTMLElement>('[data-error]')!;
     const ok = form.querySelector<HTMLElement>('[data-ok]')!;
     const submit = form.querySelector<HTMLButtonElement>('[data-submit]')!;
@@ -122,7 +148,7 @@ const wa = site.contact.whatsapp;
     source.value = [location.pathname, motivo].filter(Boolean).join(' · ');
     if (motivo === 'piloto') {
       const msg = form.querySelector<HTMLTextAreaElement>('textarea[name="message"]')!;
-      if (!msg.value) msg.value = 'Me interesa entrar en el piloto.';
+      if (!msg.value) msg.value = tx.pilot;
     }
 
     const showError = (text: string) => {
@@ -142,10 +168,10 @@ const wa = site.contact.whatsapp;
       ) as HTMLInputElement | undefined;
       if (firstInvalid) {
         const label = firstInvalid.name === 'consent'
-          ? 'Marca la casilla de privacidad para poder enviarlo.'
+          ? tx.errConsent
           : firstInvalid.name === 'phone'
-            ? 'Escribe un teléfono válido, por ejemplo 600 123 456.'
-            : 'Rellena tu nombre y el nombre del local.';
+            ? tx.errPhone
+            : tx.errName;
         showError(label);
         firstInvalid.focus();
         return;
@@ -159,26 +185,27 @@ const wa = site.contact.whatsapp;
         interest: data.getAll('interest'),
         message: data.get('message'),
         source: data.get('source'),
+        locale: data.get('locale'),
         consent: true,
         sentAt: new Date().toISOString(),
       };
 
       if (!endpoint) {
         const body = [
-          `Nombre: ${payload.name}`,
-          `Local: ${payload.venue}`,
-          `Teléfono: ${payload.phone}`,
-          `Email: ${payload.email || '-'}`,
-          `Interés: ${payload.interest.join(', ') || '-'}`,
+          `${tx.mailName}: ${payload.name}`,
+          `${tx.mailVenue}: ${payload.venue}`,
+          `${tx.mailPhone}: ${payload.phone}`,
+          `${tx.mailEmail}: ${payload.email || '-'}`,
+          `${tx.mailInterest}: ${payload.interest.join(', ') || '-'}`,
           '',
           String(payload.message || ''),
         ].join('\n');
-        location.href = `mailto:${email}?subject=${encodeURIComponent('Información para ' + payload.venue)}&body=${encodeURIComponent(body)}`;
+        location.href = `mailto:${email}?subject=${encodeURIComponent(tx.mailSubject + payload.venue)}&body=${encodeURIComponent(body)}`;
         return;
       }
 
       submit.disabled = true;
-      submit.textContent = 'Enviando…';
+      submit.textContent = tx.sending;
       try {
         const res = await fetch(endpoint, {
           method: 'POST',
@@ -192,9 +219,9 @@ const wa = site.contact.whatsapp;
         (window as any).umami?.track?.('contacto-enviado', { origen: payload.source, interes: payload.interest.join(',') });
         ok.focus();
       } catch {
-        showError(`No se ha podido enviar. Vuelve a intentarlo o escríbeme a ${email}.`);
+        showError(tx.errSend.replace('{email}', email));
         submit.disabled = false;
-        submit.textContent = 'Enviar mensaje';
+        submit.textContent = tx.submit;
       }
     });
   });
@@ -299,6 +326,11 @@ const wa = site.contact.whatsapp;
     flex: none;
   }
   .consent {
+    font-size: var(--step--1);
+    color: var(--muted);
+  }
+  .privacy-note {
+    margin-top: calc(-1 * var(--space-2));
     font-size: var(--step--1);
     color: var(--muted);
   }

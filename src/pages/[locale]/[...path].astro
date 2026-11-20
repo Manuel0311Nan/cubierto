@@ -1,0 +1,25 @@
+---
+/**
+ * Páginas en inglés y portugués: una por cada clave de src/views/index.ts, en la dirección de src/i18n/routes.ts.
+ * El español no pasa por aquí: sus páginas son los archivos de src/pages/ (las direcciones no cambian).
+ */
+import { locales, defaultLocale } from '../../i18n/config';
+import { routes } from '../../i18n/routes';
+import { views, type ViewKey } from '../../views';
+
+export function getStaticPaths() {
+  return locales
+    .filter((locale) => locale !== defaultLocale)
+    .flatMap((locale) =>
+      (Object.keys(views) as ViewKey[]).map((key) => {
+        const full = (routes[key] as Record<string, string>)[locale];
+        const rest = full.split('/').filter(Boolean).slice(1).join('/');
+        return { params: { locale, path: rest || undefined }, props: { key } };
+      }),
+    );
+}
+
+const View = views[Astro.props.key as ViewKey];
+---
+
+<View />

@@ -16,10 +16,7 @@ export const site = {
   fullName: 'Cubierto · carta QR y reservas',
   alternateName: ['Cubierto · carta QR y reservas', 'cubierto.site'],
   url: 'https://cubierto.site', // se usa en canonical, sitemap y JSON-LD (cámbialo también en astro.config.mjs)
-  locale: 'es_ES',
-  tagline: 'Webs, carta QR y reservas para bares y restaurantes',
-  description:
-    'Web, carta digital con QR y reservas online para bares y restaurantes de Alcalá de Henares y el Corredor del Henares. Funcionando en una semana.',
+  // El eslogan y la descripción de la marca están traducidos en src/i18n/ (meta.tagline y meta.description).
   city: 'Alcalá de Henares',
   region: 'Comunidad de Madrid',
   /** Zonas que atiendes (JSON-LD). `type` es el tipo schema.org: City para municipios, Place para comarcas. */
@@ -35,6 +32,7 @@ export const site = {
     email: 'hola@cubierto.site',
     phone: '+34614898447', // formato internacional para tel: y JSON-LD (vacío = no se muestra)
     phoneDisplay: '614 89 84 47', // cómo se lee en la web
+    phoneDisplayIntl: '+34 614 89 84 47', // cómo se lee en la web en otros idiomas (con prefijo de España)
     whatsapp: '34614898447', // número para WhatsApp en formato 34600000000 (vacío = no se muestra)
     /**
      * Endpoint que recibe el formulario: /api/contacto/ (src/pages/api/contacto.ts).
@@ -90,16 +88,11 @@ export const pricing = {
   pack: 79, // los tres módulos juntos
   webSetup: 499, // alta de la web suelta, pago único, IVA INCLUIDO
   packSetup: 499, // alta del pack completo (los tres módulos), pago único, IVA INCLUIDO. Incluye la primera cuota
-  vatNote: 'Precios sin IVA, salvo donde se indica. Sin permanencia: das de baja un módulo cuando quieras.',
+  // La nota de IVA está traducida en src/i18n/ (common.vatNote).
 };
 
-export const nav = [
-  { href: '/web-para-restaurantes/', label: 'Web' },
-  { href: '/carta-digital-qr/', label: 'Carta QR' },
-  { href: '/reservas-online/', label: 'Reservas' },
-  { href: '/precios/', label: 'Precios' },
-  { href: '/sobre-mi/', label: 'Sobre mí' },
-];
+/** Menú principal: páginas de src/i18n/routes.ts; las etiquetas están en src/i18n/ (nav). */
+export const nav = ['web', 'carta', 'reservas', 'precios', 'sobreMi'] as const;
 
 export const formatEuros = (n: number) =>
   new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);

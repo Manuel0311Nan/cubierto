@@ -1,4 +1,7 @@
 import type { ModuleKey } from '../config/site';
+import type { Locale, RouteKey } from '../i18n';
+import { tools as toolsEn } from './en/herramientas';
+import { tools as toolsPt } from './pt/herramientas';
 
 /**
  * Herramientas gratis para dueños de bares y restaurantes.
@@ -7,6 +10,8 @@ import type { ModuleKey } from '../config/site';
  */
 export interface Tool {
   slug: string;
+  /** Página de la herramienta en routes.ts. */
+  route: RouteKey;
   name: string;
   seoTitle: string;
   seoDescription: string;
@@ -18,6 +23,7 @@ export interface Tool {
 export const tools: Tool[] = [
   {
     slug: 'tabla-alergenos',
+    route: 'tablaAlergenos',
     name: 'Tabla de alérgenos para imprimir',
     seoTitle: 'Tabla de alérgenos para imprimir, gratis',
     seoDescription:
@@ -29,6 +35,7 @@ export const tools: Tool[] = [
   },
   {
     slug: 'calculadora-no-shows',
+    route: 'calculadora',
     name: 'Calculadora de reservas que no se presentan',
     seoTitle: 'Calculadora de no-shows para restaurantes',
     seoDescription:
@@ -40,6 +47,7 @@ export const tools: Tool[] = [
   },
   {
     slug: 'generador-qr',
+    route: 'generadorQr',
     name: 'Generador de QR para tu carta',
     seoTitle: 'Generador de QR gratis para tu carta',
     seoDescription:
@@ -137,3 +145,17 @@ export const qrGenerator = {
   paperNote:
     'Recuerda: el QR complementa a la carta en papel, no la sustituye. En la Comunidad de Madrid el local tiene que ofrecer siempre la carta y la lista de precios también en papel.',
 };
+
+export interface ToolsText {
+  tools: Tool[];
+  toolsPage: typeof toolsPage;
+  allergenSheet: typeof allergenSheet;
+  noShowCalc: typeof noShowCalc;
+  qrGenerator: typeof qrGenerator;
+}
+
+const es: ToolsText = { tools, toolsPage, allergenSheet, noShowCalc, qrGenerator };
+const byLocale: Record<Locale, ToolsText> = { es, en: toolsEn, pt: toolsPt };
+
+/** Textos de /herramientas/ en un idioma. */
+export const getTools = (locale: Locale) => byLocale[locale];

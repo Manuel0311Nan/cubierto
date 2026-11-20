@@ -4,22 +4,27 @@ import Base from './Base.astro';
 import ModuleIcon from '../components/ModuleIcon.astro';
 import Faq from '../components/Faq.astro';
 import ContactForm from '../components/ContactForm.astro';
-import { services } from '../data/services';
-import { modules } from '../data/modules';
+import { getServices } from '../data/services';
+import { getModules } from '../data/modules';
 import { faqsFor } from '../data/faq';
-import { pricing, formatEuros, type ModuleKey } from '../config/site';
+import { pricing, type ModuleKey } from '../config/site';
 import { faqJsonLd, breadcrumbJsonLd, serviceJsonLd } from '../lib/jsonld';
+import { getLocale, path, money, t } from '../i18n';
 
 interface Props {
   service: ModuleKey;
 }
 
-const s = services[Astro.props.service];
+const locale = getLocale(Astro);
+const tr = t(locale);
+const s = getServices(locale)[Astro.props.service];
+const modules = getModules(locale);
 const mod = modules.find((m) => m.key === s.key)!;
 const others = modules.filter((m) => m.key !== s.key);
-const faqs = faqsFor(s.key);
+const faqs = faqsFor(s.key, locale);
 const price = pricing.monthly[s.key];
-const guias = await getCollection('guias', ({ data }) => !data.draft && data.service === s.key);
+// Las guías solo existen en español: en otros idiomas no se enlazan.
+const guias = locale === 'es' ? await getCollection('guias', ({ data }) => !data.draft && data.service === s.key) : [];
 
 const jsonLd = [
   serviceJsonLd({
@@ -28,8 +33,9 @@ const jsonLd = [
     path: s.path,
     price,
     setup: s.key === 'web' ? pricing.webSetup : undefined,
+    locale,
   }),
-  breadcrumbJsonLd([{ name: mod.name, path: s.path }]),
+  breadcrumbJsonLd([{ name: mod.name, path: s.path }], locale),
   faqJsonLd(faqs),
 ];
 ---
@@ -37,26 +43,26 @@ const jsonLd = [
 <Base title={s.seoTitle} description={s.seoDescription} jsonLd={jsonLd}>
   <section class="intro">
     <div class="wrap">
-      <nav class="crumbs" aria-label="Estás en">
-        <a href="/">Inicio</a> <span aria-hidden="true">/</span> <span aria-current="page">{mod.name}</span>
+      <nav class="crumbs" aria-label={tr.common.crumbs}>
+        <a href={path('home', locale)}>{tr.common.home}</a> <span aria-hidden="true">/</span> <span aria-current="page">{mod.name}</span>
       </nav>
       <div class="intro-grid">
         <div>
           <h1>{s.h1}</h1>
           <p class="lead">{s.intro}</p>
           <div class="actions">
-            <a class="btn btn-primary" href="#contacto" data-umami-event="pedir-demo" data-umami-event-lugar={s.key}>Pedir una demo</a>
-            <a class="btn btn-ghost" href="/precios/">Ver todos los precios</a>
+            <a class="btn btn-primary" href="#contacto" data-umami-event="pedir-demo" data-umami-event-lugar={s.key}>{tr.common.askDemo}</a>
+            <a class="btn btn-ghost" href={path('precios', locale)}>{tr.service.seeAllPrices}</a>
           </div>
         </div>
-        <aside class="price-card" aria-label="Precio">
+        <aside class="price-card" aria-label={tr.service.priceLabel}>
           <span class="icon"><ModuleIcon name={s.key} size={40} /></span>
-          <p class="amount">{formatEuros(price)}<span> al mes</span></p>
-          {s.key === 'web' && <p class="setup">+ alta de {formatEuros(pricing.webSetup)} IVA incluido, pago único</p>}
+          <p class="amount">{money(price, locale)}<span> {tr.common.perMonth}</span></p>
+          {s.key === 'web' && <p class="setup">{tr.common.webSetup(money(pricing.webSetup, locale))}</p>}
           <ul>
             {s.included.map((i) => <li>{i}</li>)}
           </ul>
-          <p class="small muted">{pricing.vatNote}</p>
+          <p class="small muted">{tr.common.vatNote}</p>
         </aside>
       </div>
     </div>
@@ -64,20 +70,20 @@ const jsonLd = [
 
   <section class="section compare" aria-labelledby="compare-title">
     <div class="wrap">
-      <h2 id="compare-title">Lo que cambia en tu día a día</h2>
+      <h2 id="compare-title">{tr.service.compareTitle}</h2>
       <table>
         <thead>
           <tr>
-            <th scope="col">Ahora</th>
-            <th scope="col">Con {mod.name.toLowerCase()}</th>
+            <th scope="col">{tr.service.now}</th>
+            <th scope="col">{tr.service.withModule(mod.name)}</th>
           </tr>
         </thead>
         <tbody>
           {
             s.beforeAfter.map((r) => (
               <tr>
-                <td data-label="Ahora">{r.before}</td>
-                <td data-label="Con nosotros">{r.after}</td>
+                <td data-label={tr.service.now}>{r.before}</td>
+                <td data-label={tr.service.withUs}>{r.after}</td>
               </tr>
             ))
           }
@@ -91,7 +97,7 @@ const jsonLd = [
 
   <section class="section features" aria-labelledby="features-title">
     <div class="wrap">
-      <h2 id="features-title">Qué incluye</h2>
+      <h2 id="features-title">{tr.service.featuresTitle}</h2>
       <div class="feature-grid">
         {
           s.features.map((f) => (
@@ -107,7 +113,7 @@ const jsonLd = [
 
   <section class="section others" aria-labelledby="others-title">
     <div class="wrap">
-      <h2 id="others-title">Funciona mejor junto a</h2>
+      <h2 id="others-title">{tr.service.othersTitle}</h2>
       <div class="others-grid">
         {
           others.map((o) => (
@@ -128,7 +134,7 @@ const jsonLd = [
     guias.length > 0 && (
       <section class="section guides" aria-labelledby="guides-title">
         <div class="wrap">
-          <h2 id="guides-title">Guías relacionadas</h2>
+          <h2 id="guides-title">{tr.service.guidesTitle}</h2>
           <ul>
             {guias.map((g) => (
               <li>

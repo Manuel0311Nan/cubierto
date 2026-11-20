@@ -8,13 +8,17 @@
 import {
   activeServices,
   activeCategories,
-  categories,
   consentRequired,
   CONSENT_VERSION,
   CONSENT_MAX_AGE_DAYS,
   CONSENT_STORAGE_KEY,
   type CookieService,
 } from '../config/cookies';
+import { getLocale, path, t } from '../i18n';
+
+const locale = getLocale(Astro);
+const tc = t(locale).cookies;
+const cat = tc.categories;
 
 const loaders: Record<string, (id: string) => string> = {
   ga4: (id) => `
@@ -49,9 +53,10 @@ const config = JSON.stringify({
   cleanup: Object.fromEntries(activeCategories.map((c) => [c, activeServices.filter((s) => s.category === c).flatMap((s) => s.cleanup)])),
 });
 
-const categoryNames = activeCategories.map((c) => categories[c].name.toLowerCase());
+// Nombres y descripciones de las categorías: traducidos en src/i18n/ (cookies.categories).
+const categoryNames = activeCategories.map((c) => cat[c].name.toLowerCase());
 const summary =
-  categoryNames.length === 1 ? categoryNames[0] : `${categoryNames.slice(0, -1).join(', ')} y ${categoryNames.at(-1)}`;
+  categoryNames.length === 1 ? categoryNames[0] : `${categoryNames.slice(0, -1).join(', ')} ${tc.and} ${categoryNames.at(-1)}`;
 ---
 
 {
@@ -63,41 +68,41 @@ const summary =
 
       <div class="cc-banner" data-cc-banner data-cc-config={config} role="region" aria-labelledby="cc-title" hidden>
         <div class="cc-text">
-          <p class="cc-title" id="cc-title">Tú decides sobre las cookies</p>
+          <p class="cc-title" id="cc-title">{tc.title}</p>
           <p>
-            Usamos cookies de {summary} solo si nos das permiso. Las técnicas son necesarias para que la web funcione.
-            Más detalles en la <a href="/cookies/">política de cookies</a>.
+            {tc.text(summary)}
+            {tc.moreBefore}<a href={path('cookies', locale)}>{tc.policy}</a>{tc.moreAfter}
           </p>
         </div>
         <div class="cc-actions">
-          <button type="button" class="cc-btn" data-cc="reject">Rechazar</button>
-          <button type="button" class="cc-btn" data-cc="accept">Aceptar</button>
-          <button type="button" class="cc-link" data-cc="settings">Configurar</button>
+          <button type="button" class="cc-btn" data-cc="reject">{tc.reject}</button>
+          <button type="button" class="cc-btn" data-cc="accept">{tc.accept}</button>
+          <button type="button" class="cc-link" data-cc="settings">{tc.configure}</button>
         </div>
       </div>
 
       <dialog class="cc-dialog" data-cc-dialog aria-labelledby="cc-dialog-title">
         <form method="dialog" class="cc-form">
-          <h2 id="cc-dialog-title">Configurar cookies</h2>
-          <p class="cc-intro">Elige qué cookies aceptas. Puedes cambiarlo cuando quieras desde el enlace del pie de página.</p>
+          <h2 id="cc-dialog-title">{tc.dialogTitle}</h2>
+          <p class="cc-intro">{tc.dialogIntro}</p>
 
           <fieldset class="cc-cat">
-            <legend class="visually-hidden">{categories.necessary.name}</legend>
+            <legend class="visually-hidden">{cat.necessary.name}</legend>
             <div class="cc-cat-head">
-              <span class="cc-cat-name">{categories.necessary.name}</span>
-              <span class="cc-always">Siempre activas</span>
+              <span class="cc-cat-name">{cat.necessary.name}</span>
+              <span class="cc-always">{tc.alwaysOn}</span>
             </div>
-            <p>{categories.necessary.description}</p>
+            <p>{cat.necessary.description}</p>
           </fieldset>
 
           {activeCategories.map((c) => (
             <fieldset class="cc-cat">
-              <legend class="visually-hidden">{categories[c].name}</legend>
+              <legend class="visually-hidden">{cat[c].name}</legend>
               <label class="cc-cat-head">
-                <span class="cc-cat-name">{categories[c].name}</span>
+                <span class="cc-cat-name">{cat[c].name}</span>
                 <input class="cc-switch" type="checkbox" name={c} data-cc-category={c} />
               </label>
-              <p>{categories[c].description}</p>
+              <p>{cat[c].description}</p>
               <p class="cc-services">
                 {activeServices
                   .filter((s) => s.category === c)
@@ -108,9 +113,9 @@ const summary =
           ))}
 
           <div class="cc-dialog-actions">
-            <button type="button" class="cc-btn" data-cc="reject">Rechazar todas</button>
-            <button type="button" class="cc-btn" data-cc="save">Guardar selección</button>
-            <button type="button" class="cc-btn" data-cc="accept">Aceptar todas</button>
+            <button type="button" class="cc-btn" data-cc="reject">{tc.rejectAll}</button>
+            <button type="button" class="cc-btn" data-cc="save">{tc.save}</button>
+            <button type="button" class="cc-btn" data-cc="accept">{tc.acceptAll}</button>
           </div>
         </form>
       </dialog>

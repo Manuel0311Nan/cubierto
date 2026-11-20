@@ -1,14 +1,19 @@
 ---
 import ModuleIcon from './ModuleIcon.astro';
-import { modules } from '../data/modules';
-import { pricing, formatEuros } from '../config/site';
+import { getModules } from '../data/modules';
+import { pricing } from '../config/site';
+import { getLocale, money, t } from '../i18n';
+
+const locale = getLocale(Astro);
+const tr = t(locale);
+const modules = getModules(locale);
 ---
 
 <section class="section" id="servicios" aria-labelledby="servicios-title">
   <div class="wrap">
     <div class="section-head">
-      <h2 id="servicios-title">Tres cosas que puedes tener funcionando esta semana</h2>
-      <p>Empieza por la que más te duela hoy. Las demás se añaden cuando quieras, sin cambiar de sistema.</p>
+      <h2 id="servicios-title">{tr.moduleList.title}</h2>
+      <p>{tr.moduleList.intro}</p>
     </div>
 
     <ul class="list">
@@ -31,11 +36,11 @@ import { pricing, formatEuros } from '../config/site';
             </div>
             <div class="price">
               <p>
-                <span class="amount">{formatEuros(pricing.monthly[m.key])}</span>
-                <span class="per">al mes</span>
+                <span class="amount">{money(pricing.monthly[m.key], locale)}</span>
+                <span class="per">{tr.common.perMonth}</span>
               </p>
-              {m.key === 'web' && <p class="setup">+ alta de {formatEuros(pricing.webSetup)} IVA incluido</p>}
-              <a href={m.href}>Ver cómo funciona</a>
+              {m.key === 'web' && <p class="setup">{tr.common.webSetupShort(money(pricing.webSetup, locale))}</p>}
+              <a href={m.href}>{tr.common.seeHow}</a>
             </div>
           </li>
         ))

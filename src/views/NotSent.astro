@@ -1,0 +1,24 @@
+---
+// Destino del formulario cuando falla un envío sin JavaScript (src/pages/api/contacto.ts).
+import Base from '../layouts/Base.astro';
+import { site } from '../config/site';
+import { getLocale, path, t } from '../i18n';
+
+const locale = getLocale(Astro);
+const x = t(locale).notSent;
+---
+
+<Base title={x.title} noindex>
+  <section class="section">
+    <div class="wrap prose">
+      <h1>{x.title}</h1>
+      <p>{x.text}</p>
+      <p>{x.writeMe} <a href={`mailto:${site.contact.email}`}>{site.contact.email}</a>.</p>
+      <p><a class="btn btn-primary" href={path('contacto', locale)}>{x.back}</a></p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  h1 { font-size: var(--step-4); margin-bottom: var(--space-2); }
+</style>

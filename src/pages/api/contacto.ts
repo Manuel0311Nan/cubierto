@@ -5,6 +5,8 @@
 import type { APIRoute } from 'astro';
 import { RESEND_API_KEY, CONTACT_TO, CONTACT_FROM } from 'astro:env/server';
 import { buildLeadEmail, parseLead } from '../../lib/contact';
+import { localeFromPath, locales, type Locale } from '../../i18n/config';
+import { path } from '../../i18n/routes';
 
 export const prerender = false;
 
@@ -29,10 +31,12 @@ export const POST: APIRoute = async ({ request }) => {
   const isForm = type.includes('application/x-www-form-urlencoded') || type.includes('multipart/form-data');
   if (!isJson && !isForm) return json(415, { ok: false });
 
+  // Idioma para la página de gracias o de error sin JavaScript: el del formulario o, si falta, el de la página de origen.
+  let locale: Locale = localeFromPath(new URL(request.headers.get('referer') ?? '/', request.url).pathname);
   const done = (ok: boolean, status: number, reason?: string) =>
     isJson
       ? json(status, reason ? { ok, reason } : { ok })
-      : Response.redirect(new URL(ok ? '/gracias/' : '/no-enviado/', request.url), 303);
+      : Response.redirect(new URL(path(ok ? 'gracias' : 'noEnviado', locale), request.url), 303);
 
   let body: unknown;
   try {
@@ -50,6 +54,7 @@ export const POST: APIRoute = async ({ request }) => {
         interest: form.getAll('interest'),
         message: form.get('message'),
         source: form.get('source'),
+        locale: form.get('locale'),
         company: form.get('company'),
         consent: form.get('consent') === 'yes',
       };
@@ -57,6 +62,9 @@ export const POST: APIRoute = async ({ request }) => {
   } catch {
     return done(false, 400);
   }
+
+  const formLocale = String((body as Record<string, unknown> | null)?.locale ?? '');
+  if ((locales as readonly string[]).includes(formLocale)) locale = formLocale as Locale;
 
   const parsed = parseLead(body);
   if (!parsed.ok) {

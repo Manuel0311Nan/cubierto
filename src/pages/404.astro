@@ -1,19 +1,47 @@
 ---
 import Base from '../layouts/Base.astro';
+import { locales, localeInfo, path, t } from '../i18n';
+
+// Una sola página 404 para todos los idiomas: sale en español y, si la dirección empieza por /en/ o /pt/,
+// un script pequeño cambia los textos y los enlaces a ese idioma (sin JavaScript se queda en español).
+const x = t('es').notFound;
+const texts = JSON.stringify(
+  Object.fromEntries(
+    locales.map((l) => [
+      l,
+      { ...t(l).notFound, lang: localeInfo[l].htmlLang, homeHref: path('home', l), contactHref: path('contacto', l) },
+    ]),
+  ),
+);
 ---
 
-<Base title="Página no encontrada" noindex>
+<Base title={x.title} noindex>
   <section class="section">
-    <div class="wrap prose">
-      <h1>Esta página no existe</h1>
-      <p>Puede que el enlace esté mal escrito o que la página se haya movido.</p>
+    <div class="wrap prose" data-not-found={texts}>
+      <h1 data-k="h1">{x.h1}</h1>
+      <p data-k="text">{x.text}</p>
       <p class="links">
-        <a class="btn btn-primary" href="/">Ir al inicio</a>
-        <a class="btn btn-ghost" href="/contacto/">Escribirme</a>
+        <a class="btn btn-primary" href={path('home', 'es')} data-k="home">{x.home}</a>
+        <a class="btn btn-ghost" href={path('contacto', 'es')} data-k="write">{x.write}</a>
       </p>
     </div>
   </section>
 </Base>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-not-found]');
+  const first = location.pathname.split('/')[1];
+  if (root && (first === 'en' || first === 'pt')) {
+    const tx = JSON.parse(root.dataset.notFound!)[first] as Record<string, string>;
+    document.documentElement.lang = tx.lang;
+    document.title = `${tx.title} | Cubierto`;
+    root.querySelectorAll<HTMLElement>('[data-k]').forEach((el) => {
+      el.textContent = tx[el.dataset.k!];
+    });
+    root.querySelector<HTMLAnchorElement>('[data-k="home"]')!.href = tx.homeHref;
+    root.querySelector<HTMLAnchorElement>('[data-k="write"]')!.href = tx.contactHref;
+  }
+</script>
 
 <style>
   h1 { font-size: var(--step-4); margin-bottom: var(--space-2); }

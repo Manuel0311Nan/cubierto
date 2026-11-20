@@ -1,16 +1,21 @@
 ---
 import Avatar from './Avatar.astro';
-import { person } from '../data/about';
+import { getAbout } from '../data/about';
+import { getLocale, path, t } from '../i18n';
+
+const locale = getLocale(Astro);
+const tr = t(locale).about;
+const { person } = getAbout(locale);
 ---
 
 <section class="section about" aria-labelledby="about-title">
   <div class="wrap grid">
     <Avatar size="9rem" />
     <div>
-      <h2 id="about-title">Quién está detrás</h2>
+      <h2 id="about-title">{tr.teaserTitle}</h2>
       <p class="lead">{person.intro}</p>
       <p class="promise">{person.promise}</p>
-      <a class="btn btn-ghost" href="/sobre-mi/">Más sobre mí</a>
+      <a class="btn btn-ghost" href={path('sobreMi', locale)}>{tr.more}</a>
     </div>
   </div>
 </section>

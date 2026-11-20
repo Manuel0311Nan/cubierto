@@ -1,0 +1,49 @@
+---
+import ServicePage from '../layouts/ServicePage.astro';
+import FloorPlanDemo from '../components/FloorPlanDemo.astro';
+import { getLocale, path, t } from '../i18n';
+
+const locale = getLocale(Astro);
+const r = t(locale).reservasPage;
+---
+
+<ServicePage service="reservas">
+  <section slot="demo" class="section demo" aria-labelledby="sala-title">
+    <div class="wrap">
+      <div class="head">
+        <h2 id="sala-title">{r.title}</h2>
+        <p>
+          {r.text}
+        </p>
+      </div>
+      <FloorPlanDemo />
+      <p class="note">{r.note}</p>
+      <p class="calc-link">{r.calcQuestion} <a href={path('calculadora', locale)}>{r.calcLink}</a></p>
+    </div>
+  </section>
+</ServicePage>
+
+<style>
+  .head {
+    max-width: 42rem;
+    margin-bottom: var(--space-4);
+  }
+  h2 {
+    font-size: var(--step-4);
+  }
+  .head p {
+    margin-top: var(--space-2);
+    font-size: var(--step-1);
+    line-height: 1.5;
+    color: var(--muted);
+  }
+  .calc-link {
+    margin-top: var(--space-3);
+    font-weight: 600;
+  }
+  .note {
+    margin-top: var(--space-2);
+    font-size: var(--step--1);
+    color: var(--muted);
+  }
+</style>

@@ -1,4 +1,7 @@
 import type { ModuleKey } from '../config/site';
+import { path, type Locale } from '../i18n';
+import { services as servicesEn } from './en/services';
+import { services as servicesPt } from './pt/services';
 
 export interface ServicePageData {
   key: ModuleKey;
@@ -19,7 +22,7 @@ export interface ServicePageData {
 export const services: Record<ModuleKey, ServicePageData> = {
   carta: {
     key: 'carta',
-    path: '/carta-digital-qr/',
+    path: path('carta', 'es'),
     seoTitle: 'Carta digital QR para restaurantes en Alcalá',
     seoDescription:
       'Carta digital con QR para tu bar o restaurante: alérgenos obligatorios, menú del día, platos agotados al momento y traducción a otros idiomas. Lista en un día.',
@@ -45,7 +48,7 @@ export const services: Record<ModuleKey, ServicePageData> = {
   },
   reservas: {
     key: 'reservas',
-    path: '/reservas-online/',
+    path: path('reservas', 'es'),
     seoTitle: 'Reservas online para restaurantes en Alcalá',
     seoDescription:
       'Reservas online para tu restaurante desde tu web, Instagram y Google: confirmación y recordatorio automáticos, vista de sala y sin dobles reservas.',
@@ -71,7 +74,7 @@ export const services: Record<ModuleKey, ServicePageData> = {
   },
   web: {
     key: 'web',
-    path: '/web-para-restaurantes/',
+    path: path('web', 'es'),
     seoTitle: 'Páginas web para restaurantes en Alcalá',
     seoDescription:
       'Página web para tu restaurante o bar, rápida y preparada para salir en Google, con dominio propio, mantenimiento incluido y editable por ti desde el móvil.',
@@ -96,3 +99,8 @@ export const services: Record<ModuleKey, ServicePageData> = {
     contactHeading: '¿Te enseño cómo quedaría tu web?',
   },
 };
+
+const byLocale: Record<Locale, Record<ModuleKey, ServicePageData>> = { es: services, en: servicesEn, pt: servicesPt };
+
+/** Textos de las páginas de servicio en un idioma. */
+export const getServices = (locale: Locale) => byLocale[locale];
