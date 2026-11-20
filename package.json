@@ -12,7 +12,8 @@
     "@astrojs/sitemap": "^3.7.4",
     "@astrojs/vercel": "11.0.18",
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",
-    "astro": "^7.4.11"
+    "astro": "^7.4.11",
+    "qr": "^0.7.2"
   },
   "private": true,
   "type": "module",

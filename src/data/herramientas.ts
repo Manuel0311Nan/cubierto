@@ -38,12 +38,23 @@ export const tools: Tool[] = [
       'Pon tus números y mira cuánto dejas de facturar cada mes por las mesas que se quedan vacías porque alguien reservó y no vino. Los valores de partida son un ejemplo: cámbialos por los de tu local.',
     service: 'reservas',
   },
+  {
+    slug: 'generador-qr',
+    name: 'Generador de QR para tu carta',
+    seoTitle: 'Generador de QR gratis para tu carta',
+    seoDescription:
+      'Crea gratis el código QR de tu carta, tu web o tus reservas y descárgalo en SVG o PNG para imprimir. No caduca, no lleva publicidad y no pide registro.',
+    h1: 'Generador de QR gratis para la carta de tu bar',
+    intro:
+      'Pega la dirección de tu carta, tu web o tu página de reservas y descarga el código para imprimirlo. Se crea en tu propio navegador: no pasa por ningún servidor, no caduca y no lleva publicidad.',
+    service: 'carta',
+  },
 ];
 
 export const toolsPage = {
   seoTitle: 'Herramientas gratis para restaurantes',
   seoDescription:
-    'Herramientas gratis para bares y restaurantes: tabla de alérgenos para imprimir y calculadora de reservas que no se presentan. Sin registrarte.',
+    'Herramientas gratis para bares y restaurantes: generador de QR, tabla de alérgenos para imprimir y calculadora de reservas que no se presentan.',
   h1: 'Herramientas gratis para tu bar o restaurante',
   intro: 'Plantillas y calculadoras para el día a día del local. Gratis, sin registrarte y sin dar tu email.',
 };
@@ -101,4 +112,28 @@ export const noShowCalc = {
     { title: 'Lista de espera', text: 'Si alguien cancela, la mesa pasa a la siguiente persona de la lista en lugar de quedarse vacía.' },
     { title: 'Apunta quién no vino', text: 'Marcar "no vino" en cada reserva te dice si es algo puntual o un problema de verdad, y con qué clientes.' },
   ],
+};
+
+/** Textos del generador de QR. */
+export const qrGenerator = {
+  inputLabel: 'Dirección o texto del QR',
+  inputHint: 'Por ejemplo, la dirección de tu carta: https://tubar.es/carta',
+  placeholder: 'https://',
+  sizeLabel: 'Tamaño del PNG',
+  sizes: [512, 1024, 2048],
+  downloadSvg: 'Descargar SVG',
+  downloadPng: 'Descargar PNG',
+  previewAlt: 'Vista previa del código QR',
+  empty: 'Escribe una dirección para ver el QR.',
+  tooLong: 'El texto es demasiado largo para un QR. Usa una dirección más corta.',
+  noJs: 'El generador necesita JavaScript para crear el código en tu navegador.',
+  tipsTitle: 'Antes de imprimirlo',
+  tips: [
+    { title: 'Pruébalo con dos móviles', text: 'Uno Android y un iPhone, desde la distancia a la que lo escaneará el cliente sentado.' },
+    { title: 'Que no sea pequeño', text: 'Mejor grande que pequeño, con margen blanco alrededor y oscuro sobre claro. No lo pongas sobre fotos ni fondos con dibujo.' },
+    { title: 'Dile qué es', text: 'Una frase al lado, como "Escanea para ver la carta", hace que lo usen más.' },
+    { title: 'Este QR es fijo', text: 'Lleva directamente a la dirección que pongas. Si un día cambias esa dirección, tendrás que imprimirlo otra vez; por eso conviene que apunte a una dirección que no cambie.' },
+  ],
+  paperNote:
+    'Recuerda: el QR complementa a la carta en papel, no la sustituye. En la Comunidad de Madrid el local tiene que ofrecer siempre la carta y la lista de precios también en papel.',
 };

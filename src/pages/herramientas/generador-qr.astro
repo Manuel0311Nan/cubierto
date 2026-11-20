@@ -1,0 +1,292 @@
+---
+import Base from '../../layouts/Base.astro';
+import ContactForm from '../../components/ContactForm.astro';
+import { tools, qrGenerator as t } from '../../data/herramientas';
+import { services } from '../../data/services';
+import { breadcrumbJsonLd } from '../../lib/jsonld';
+
+const tool = tools.find((x) => x.slug === 'generador-qr')!;
+const path = `/herramientas/${tool.slug}/`;
+const jsonLd = [
+  breadcrumbJsonLd([
+    { name: 'Herramientas', path: '/herramientas/' },
+    { name: tool.name, path },
+  ]),
+];
+---
+
+<Base title={tool.seoTitle} description={tool.seoDescription} jsonLd={jsonLd}>
+  <section class="section">
+    <div class="wrap">
+      <nav class="crumbs" aria-label="Estás en">
+        <a href="/">Inicio</a> <span aria-hidden="true">/</span> <a href="/herramientas/">Herramientas</a>
+      </nav>
+      <h1>{tool.h1}</h1>
+      <p class="lead">{tool.intro}</p>
+
+      <div class="gen" data-qr-gen data-empty={t.empty} data-too-long={t.tooLong}>
+        <form class="inputs" onsubmit="return false">
+          <div class="field">
+            <label for="qr-text">{t.inputLabel}</label>
+            <input id="qr-text" name="text" type="url" inputmode="url" autocomplete="url" placeholder={t.placeholder} maxlength="600" />
+            <p class="hint">{t.inputHint}</p>
+          </div>
+          <div class="field">
+            <label for="qr-size">{t.sizeLabel}</label>
+            <select id="qr-size" name="size">
+              {t.sizes.map((n) => <option value={n} selected={n === 1024}>{n} × {n} px</option>)}
+            </select>
+          </div>
+          <div class="actions" data-actions hidden>
+            <button type="button" class="btn btn-primary" data-download="png">{t.downloadPng}</button>
+            <button type="button" class="btn btn-ghost" data-download="svg">{t.downloadSvg}</button>
+          </div>
+          <noscript><p class="hint">{t.noJs}</p></noscript>
+        </form>
+
+        <div class="preview" aria-live="polite">
+          <div class="qr" data-preview role="img" aria-label={t.previewAlt}></div>
+          <p class="status" data-status>{t.empty}</p>
+        </div>
+      </div>
+
+      <p class="paper">{t.paperNote} <a href="/guias/carta-qr-restaurante-que-debe-tener/">Qué dice la norma</a></p>
+    </div>
+  </section>
+
+  <section class="section tips" aria-labelledby="tips-title">
+    <div class="wrap">
+      <h2 id="tips-title">{t.tipsTitle}</h2>
+      <ul class="tip-grid">
+        {
+          t.tips.map((x) => (
+            <li>
+              <h3>{x.title}</h3>
+              <p>{x.text}</p>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="more">
+        Con la carta digital de Cubierto, el QR de cada mesa apunta siempre a tu carta: cambias platos y precios sin volver a imprimirlo.{' '}
+        <a href={services.carta.path}>Ver la carta digital con QR</a>
+      </p>
+    </div>
+  </section>
+
+  <ContactForm preselect="carta" heading={services.carta.contactHeading} />
+</Base>
+
+<script>
+  import encodeQR from 'qr';
+
+  document.querySelectorAll<HTMLElement>('[data-qr-gen]').forEach((gen) => {
+    const input = gen.querySelector<HTMLInputElement>('#qr-text')!;
+    const sizeSel = gen.querySelector<HTMLSelectElement>('#qr-size')!;
+    const preview = gen.querySelector<HTMLElement>('[data-preview]')!;
+    const status = gen.querySelector<HTMLElement>('[data-status]')!;
+    const actions = gen.querySelector<HTMLElement>('[data-actions]')!;
+    let svg = '';
+
+    // Oscuro sobre blanco siempre (mejor lectura), también en modo oscuro.
+    const toSvg = (raw: boolean[][]) => {
+      const n = raw.length;
+      let d = '';
+      raw.forEach((row, y) => row.forEach((on, x) => { if (on) d += `M${x} ${y}h1v1h-1z`; }));
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${n} ${n}" shape-rendering="crispEdges"><rect width="${n}" height="${n}" fill="#ffffff"/><path d="${d}" fill="#000000"/></svg>`;
+    };
+
+    const update = () => {
+      const text = input.value.trim();
+      if (!text) {
+        svg = '';
+        preview.innerHTML = '';
+        status.textContent = gen.dataset.empty!;
+        actions.hidden = true;
+        return;
+      }
+      try {
+        svg = toSvg(encodeQR(text, 'raw', { ecc: 'medium', border: 2 }));
+        preview.innerHTML = svg;
+        status.textContent = text;
+        actions.hidden = false;
+      } catch {
+        svg = '';
+        preview.innerHTML = '';
+        status.textContent = gen.dataset.tooLong!;
+        actions.hidden = true;
+      }
+    };
+
+    const download = (href: string, name: string) => {
+      const a = document.createElement('a');
+      a.href = href;
+      a.download = name;
+      a.click();
+    };
+
+    gen.addEventListener('click', (ev) => {
+      const btn = (ev.target as HTMLElement).closest<HTMLButtonElement>('[data-download]');
+      if (!btn || !svg) return;
+      if (btn.dataset.download === 'svg') {
+        const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+        download(url, 'codigo-qr.svg');
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        return;
+      }
+      const size = Number(sizeSel.value) || 1024;
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = size;
+        const ctx = canvas.getContext('2d')!;
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(img, 0, 0, size, size);
+        download(canvas.toDataURL('image/png'), 'codigo-qr.png');
+      };
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    });
+
+    input.addEventListener('input', update);
+    update();
+  });
+</script>
+
+<style>
+  .crumbs {
+    font-size: var(--step--1);
+    color: var(--muted);
+    margin-bottom: var(--space-3);
+  }
+  h1 {
+    font-size: var(--step-5);
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+    font-weight: 750;
+    max-width: 18ch;
+  }
+  .lead {
+    margin-top: var(--space-3);
+    font-size: var(--step-1);
+    line-height: 1.5;
+    color: var(--muted);
+    max-width: 42rem;
+  }
+  .gen {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+    align-items: start;
+  }
+  .inputs {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border: 2px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+  }
+  .field {
+    display: grid;
+    gap: 0.35rem;
+  }
+  label {
+    font-weight: 650;
+  }
+  input,
+  select {
+    font: inherit;
+    min-height: 3rem;
+    padding: 0.4rem 0.75rem;
+    border: 2px solid var(--line);
+    border-radius: var(--radius-s);
+    background: var(--paper);
+    color: var(--ink);
+    width: 100%;
+  }
+  .hint {
+    font-size: var(--step--1);
+    color: var(--muted);
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .actions[hidden] {
+    display: none;
+  }
+  .preview {
+    display: grid;
+    gap: var(--space-1);
+    justify-items: center;
+    padding: var(--space-3);
+    border-radius: var(--radius-m);
+    background: var(--tile);
+  }
+  .qr {
+    width: min(100%, 16rem);
+    aspect-ratio: 1;
+    border-radius: var(--radius-s);
+    background: var(--surface);
+  }
+  .qr :global(svg) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius-s);
+  }
+  .status {
+    font-size: var(--step--1);
+    color: var(--muted);
+    text-align: center;
+    overflow-wrap: anywhere;
+    max-width: 18rem;
+  }
+  .paper {
+    margin-top: var(--space-3);
+    max-width: 48rem;
+    font-size: var(--step--1);
+    color: var(--muted);
+  }
+  .paper a,
+  .more a {
+    font-weight: 650;
+  }
+  .tips {
+    padding-top: 0;
+  }
+  .tips h2 {
+    font-size: var(--step-4);
+  }
+  .tip-grid {
+    list-style: none;
+    margin: var(--space-4) 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+  .tip-grid li {
+    padding-top: var(--space-2);
+    border-top: 4px solid var(--saffron);
+  }
+  .tip-grid h3 {
+    font-size: var(--step-1);
+  }
+  .tip-grid p {
+    margin-top: 0.4rem;
+    color: var(--muted);
+  }
+  .more {
+    margin-top: var(--space-4);
+    max-width: 44rem;
+  }
+  @media (max-width: 860px) {
+    .gen,
+    .tip-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
