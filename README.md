@@ -53,11 +53,11 @@ Formato que envía el formulario con JavaScript:
 {
   "name": "Ana", "venue": "Casa Brezo", "phone": "600123456", "email": "",
   "interest": ["carta", "reservas"], "message": "…",
-  "source": "/carta-digital-qr/", "consent": true, "sentAt": "2026-11-12T22:00:00.000Z"
+  "source": "/carta-digital-qr/", "locale": "es", "consent": true, "sentAt": "2026-11-12T22:00:00.000Z"
 }
 ```
 
-Sin JavaScript, el navegador envía el formulario normal y la función redirige a `/gracias/` o a `/no-enviado/`.
+`locale` es el idioma de la página desde la que escriben (`es`, `en` o `pt`). Sin JavaScript, el navegador envía el formulario normal y la función redirige a la página de gracias o de error de ese idioma (`/gracias/`, `/en/thanks/`, `/pt/obrigado/`…). El email que te llega va siempre en español; si escribieron en inglés o portugués, el asunto empieza por `[EN]` o `[PT]` y una línea te dice en qué idioma responder.
 
 **Configuración en Vercel** (Settings → Environment Variables, para Production y Preview) y después volver a desplegar:
 
@@ -93,12 +93,29 @@ Gestor de consentimiento propio, sin dependencias (`src/components/CookieConsent
 - Para añadir otro servicio (Hotjar, TikTok Pixel…): una entrada en `services` de `src/config/cookies.ts` y su código de carga en `loaders` de `CookieConsent.astro`.
 - Otros scripts pueden consultar el consentimiento con `window.zlConsent.has('analytics')` o escuchar el evento `consent:change`.
 
+## Idiomas
+
+La web está en **español** (sin prefijo, las direcciones de siempre), **inglés de EE. UU.** (`/en/`) y **portugués de Portugal** (`/pt/`). Plan y decisiones: `docs/plan-traduccion-en-pt.md`.
+
+- **Direcciones:** `src/i18n/routes.ts`, una clave por página con su dirección en cada idioma. Las guías y los textos legales solo existen en español; desde inglés y portugués se enlazan marcados "(in Spanish)" / "(em espanhol)".
+- **Textos de la interfaz:** `src/i18n/es.ts` es la fuente; `en.ts` y `pt.ts` tienen la misma forma. Si añades una clave en `es.ts`, `npm run check` falla hasta que la traduzcas en los otros dos.
+- **Textos largos:** `src/data/*.ts` en español y `src/data/en/`, `src/data/pt/` con lo mismo traducido (servicios, módulos, preguntas, sobre mí, herramientas, carta de ejemplo, alérgenos con su nombre oficial del Reglamento 1169/2011 en cada idioma).
+- **Páginas:** el contenido de cada página está en `src/views/`. Las páginas en español (`src/pages/*.astro`) solo llaman a su vista; las de inglés y portugués las genera `src/pages/[locale]/[...path].astro` a partir de `src/views/index.ts`.
+- **Términos:** `src/i18n/glosario.md`. Úsalo para que "alta", "pack", "cubiertos" o "sin permanencia" se traduzcan siempre igual.
+- **Comprobar:** `npm run build && npm run i18n:check` revisa que existan todas las páginas en los tres idiomas, que no se cuele texto en español en `/en/` y `/pt/`, que no haya enlaces a páginas en español sin avisar, los `hreflang` y la longitud de títulos y descripciones.
+- **Añadir una página traducida:** su vista en `src/views/`, la página en español que la llama, la clave en `routes.ts` y en `src/views/index.ts`, y sus textos en los tres diccionarios.
+- **Añadir un idioma:** `src/i18n/config.ts`, su columna en `routes.ts`, un diccionario `src/i18n/<idioma>.ts`, sus datos en `src/data/<idioma>/`, su página sin conexión en `public/sw.js` y la imagen para compartir `public/og-<idioma>.png`.
+
+La demo de la portada y el plano de sala enseñan un restaurante español: la carta del cliente sale en español con el interruptor para verla en inglés, en las tres versiones. La carta de ejemplo (`/carta-digital-qr/ejemplo/`) sí sale traducida en cada idioma, como la vería un cliente con la traducción de la carta.
+
 ## Estructura
 
 ```
 src/
   config/site.ts            # todo lo configurable
-  data/                     # textos: módulos, servicios, FAQ, sobre mí
+  i18n/                     # idiomas, direcciones (routes.ts), diccionarios es/en/pt, formatos, glosario
+  views/                    # contenido de cada página, el mismo para todos los idiomas
+  data/                     # textos largos en español; data/en/ y data/pt/ con su traducción
   layouts/
     Base.astro              # <head>, SEO, JSON-LD, registro del service worker
     ServicePage.astro       # plantilla de las 3 páginas de servicio
@@ -108,11 +125,11 @@ src/
     PackConfigurator.astro  # calculadora de precio por módulos
     CookieConsent.astro     # banner y panel de consentimiento de cookies
     ModuleList, Process, Pilot, AboutTeaser, Faq, ContactForm, …
-  pages/                    # / · /web-para-restaurantes/ · /carta-digital-qr/ · /reservas-online/
-                            # /sobre-mi/ · /contacto/ · legales · /offline/ · 404 · robots.txt
+  pages/                    # español: cada página llama a su vista; [locale]/[...path].astro genera /en/ y /pt/
+                            # guías, legales, 404 y robots.txt solo en español
 public/
   sw.js                     # service worker propio (sin dependencias)
-  manifest.webmanifest, icons/, favicon.svg, favicon.ico, og.png
+  manifest.webmanifest, icons/, favicon.svg, favicon.ico, og.png (+ og-en.png, og-pt.png)
 brand/                      # logo de Cubierto: SVG originales y PNG para emails (no se publica)
 ```
 
@@ -121,13 +138,14 @@ brand/                      # logo de Cubierto: SVG originales y PNG para emails
 - Una página por servicio, con título y H1 pensados para búsquedas concretas ("carta digital QR restaurante", "reservas online restaurante", "página web para restaurantes")
 - JSON-LD: `ProfessionalService` con zona de servicio, `Service` con precio, `FAQPage`, `BreadcrumbList`, `ProfilePage`
 - Canonical, Open Graph con imagen, `sitemap-index.xml` y `robots.txt` automáticos
+- `hreflang` entre las versiones en español, inglés y portugués de cada página (más `x-default` al español), `og:locale` y `og:locale:alternate`, e imagen para compartir en cada idioma
 - Fuente autoalojada (41 KB) con `preload`; CSS en línea cuando es pequeño; prefetch al pasar el ratón
 
 Siguiente paso recomendado para posicionar: alta en Google Search Console y en Google Business Profile como servicio de Alcalá de Henares, y más adelante páginas por zona (`/torrejon-de-ardoz/`…) solo si tienes contenido real para cada una.
 
 ## PWA
 
-- `sw.js`: páginas con red primero (copia en caché y página `/offline/` si no hay conexión), recursos con hash de Astro con caché primero, el resto se sirve de caché y se actualiza en segundo plano
+- `sw.js`: páginas con red primero (copia en caché y página sin conexión del idioma de la dirección: `/offline/`, `/en/offline/` o `/pt/offline/`), recursos con hash de Astro con caché primero, el resto se sirve de caché y se actualiza en segundo plano
 - Al cambiar la lógica del service worker, sube `VERSION` en `public/sw.js`
 
 ## Despliegue

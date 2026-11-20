@@ -36,7 +36,8 @@ npm install
 npm run dev        # http://localhost:4321 (el service worker no se registra en dev)
 npm run build      # genera .vercel/output/ (páginas estáticas + la función del formulario)
 npm run preview    # sirve la parte estática; aquí sí funciona la PWA (el formulario se prueba con dev)
-npm run check      # astro check (tipos)
+npm run check      # astro check (tipos; falla si falta una traducción)
+npm run i18n:check # tras build: páginas en los 3 idiomas, texto en español colado, enlaces, hreflang
 npm run icons      # regenera los iconos PWA desde brand/
 ```
 
@@ -48,6 +49,9 @@ Variables (`.env`, ver `.env.example`): `PUBLIC_CONTACT_ENDPOINT`, `PUBLIC_UMAMI
 src/
   config/site.ts          # marca, dominio, contacto, datos legales, PRECIOS, piloto, navegación
   config/cookies.ts       # servicios con cookies, categorías, versión y caducidad del consentimiento
+  i18n/                   # idiomas: config.ts, routes.ts (direcciones por idioma), es.ts (fuente), en.ts, pt.ts, format.ts, glosario.md
+  views/                  # contenido de cada página; lo usan las páginas en español y [locale]/[...path].astro
+  data/en/, data/pt/      # traducción de los archivos de data/ (misma forma)
   data/                   # TODO el texto editable
     modules.ts            # resumen de cada módulo (home)
     services.ts           # páginas de servicio: SEO, antes/después, funcionalidades
@@ -75,13 +79,14 @@ scripts/generate-assets.mjs  # iconos PWA desde brand/*.svg
 
 ## 5. Reglas de contenido
 
-1. **El texto vive en `src/data/` y `src/config/`**, no dentro de los componentes. Un cambio de copy no debería tocar un `.astro`.
-2. **Precios solo en `pricing` de `site.ts`.** Se usan en la lista de módulos, la calculadora, las páginas de servicio y el JSON-LD. Nunca escribas un importe a mano en otro sitio.
-3. Español de España, tuteo, frases cortas, verbos claros. Se escribe desde el punto de vista del dueño del local ("cambias un precio"), no del sistema ("gestión de entidades").
-4. Botones que dicen lo que pasa: "Pedir una demo", "Enviar mensaje". Sin flechas `→` ni MAYÚSCULAS en etiquetas.
-5. Los huecos pendientes van entre corchetes (`[Año]`, `[NIF]`) o con `// TODO`. No los rellenes con datos inventados. En `about.ts`, las entradas con corchetes no se publican (las filtra `publishable`), así que se pueden dejar a medias.
-6. El restaurante de la demo ("Casa Brezo") y sus platos son inventados y así se indica en el aviso legal.
-7. La web habla a dueños de restaurantes: no menciones tecnologías (Next.js, Astro, PostgreSQL…) en textos visibles. Se habla de resultados: rapidez, que te encuentren, tus datos en la UE.
+1. **El texto vive en `src/i18n/`, `src/data/` y `src/config/`**, no dentro de los componentes. Un cambio de copy no debería tocar un `.astro`.
+2. **Tres idiomas:** español (sin prefijo), inglés de EE. UU. (`/en/`) y portugués de Portugal (`/pt/`). Todo texto nuevo se escribe en los tres (`src/i18n/es.ts` + `en.ts` + `pt.ts`, o `src/data/` + `data/en/` + `data/pt/`) con los términos de `src/i18n/glosario.md`. Si aún no hay traducción, la página no se publica en ese idioma (no se deja texto en español en `/en/` ni `/pt/`). Guías y textos legales solo en español.
+3. **Precios solo en `pricing` de `site.ts`.** Se usan en la lista de módulos, la calculadora, las páginas de servicio y el JSON-LD. Nunca escribas un importe a mano en otro sitio.
+4. Español de España, tuteo, frases cortas, verbos claros. En inglés, "you"; en portugués de Portugal, "tu" (telemóvel, ecrã, equipa, sem fidelização). Se escribe desde el punto de vista del dueño del local ("cambias un precio"), no del sistema ("gestión de entidades").
+5. Botones que dicen lo que pasa: "Pedir una demo", "Enviar mensaje". Sin flechas `→` ni MAYÚSCULAS en etiquetas.
+6. Los huecos pendientes van entre corchetes (`[Año]`, `[NIF]`) o con `// TODO`. No los rellenes con datos inventados. En `about.ts`, las entradas con corchetes no se publican (las filtra `publishable`), así que se pueden dejar a medias.
+7. El restaurante de la demo ("Casa Brezo") y sus platos son inventados y así se indica en el aviso legal.
+8. La web habla a dueños de restaurantes: no menciones tecnologías (Next.js, Astro, PostgreSQL…) en textos visibles. Se habla de resultados: rapidez, que te encuentren, tus datos en la UE.
 
 ## 6. Reglas de diseño
 
@@ -107,7 +112,8 @@ scripts/generate-assets.mjs  # iconos PWA desde brand/*.svg
 - Un `<h1>` que contenga la búsqueda objetivo de la página.
 - JSON-LD con `lib/jsonld.ts`: `Service` + `BreadcrumbList` + `FAQPage` en servicios; `ProfilePage` en sobre mí. `Base` ya añade `ProfessionalService`.
 - Guías en `src/content/guias/`: cada una con `sources` (fuentes reales), `service` (a qué servicio lleva) y respuesta directa en el primer párrafo. Llevan `Article` + `BreadcrumbList` y salen solas en `/guias/` y en "Guías relacionadas" de su servicio. Nada de datos sin fuente.
-- Páginas que no deben indexarse (`/offline/`, `404`): prop `noindex` y excluidas del sitemap en `astro.config.mjs`.
+- Páginas que no deben indexarse (`/offline/`, `404`): prop `noindex` y excluidas del sitemap en `astro.config.mjs` (en los tres idiomas).
+- **Idiomas:** `Base` añade por su cuenta `canonical`, `hreflang` (con `x-default` al español), `og:locale` e imagen para compartir de cada idioma a partir de `src/i18n/routes.ts`. Títulos y descripciones se escriben para cada idioma, no se traducen palabra por palabra. Las direcciones en español no se cambian nunca.
 - Si cambias el dominio, cámbialo en **`site.ts` y `astro.config.mjs`**.
 - Herramientas en `/herramientas/`: gratis, sin registro y sin cifras del sector sin fuente; los cálculos usan los números que mete el usuario. Cada una enlaza a su servicio.
 - Marca: "Cubierto" es una palabra común. `alternateName` y los perfiles (`profiles` en `site.ts`, salen como `sameAs`) deben usar el mismo nombre, teléfono y web en todas partes.
@@ -116,7 +122,7 @@ scripts/generate-assets.mjs  # iconos PWA desde brand/*.svg
 ## 9. PWA
 
 - `public/sw.js`: páginas con red primero y respaldo `/offline/`; `/_astro/*` con caché primero; resto, servir y actualizar.
-- **Si cambias la lógica del service worker o la lista `PRECACHE`, sube `VERSION`.**
+- **Si cambias la lógica del service worker o la lista `PRECACHE`, sube `VERSION`.** Cada idioma tiene su página sin conexión (`OFFLINE` en `sw.js`).
 - No cachees peticiones `POST`, `/api/*` ni de otros dominios.
 
 ## 10. Cookies
@@ -128,7 +134,7 @@ scripts/generate-assets.mjs  # iconos PWA desde brand/*.svg
 
 ## 11. Formulario de contacto
 
-- Envía `POST` JSON a `PUBLIC_CONTACT_ENDPOINT` (`/api/contacto/`). Sin JavaScript, el formulario normal llega al mismo endpoint y redirige a `/gracias/` o `/no-enviado/`. El formato y las respuestas están en el README; si cambias uno, cambia el otro y `src/lib/contact.ts`.
+- Envía `POST` JSON a `PUBLIC_CONTACT_ENDPOINT` (`/api/contacto/`) con el campo `locale`. Sin JavaScript, el formulario normal llega al mismo endpoint y redirige a la página de gracias o de error de su idioma (`gracias` y `noEnviado` en `routes.ts`). El formato y las respuestas están en el README; si cambias uno, cambia el otro y `src/lib/contact.ts`.
 - La validación del servidor (`parseLead`) repite las reglas del formulario: si cambias un campo, cambia los dos.
 - Nada de datos personales en los logs de la función: solo códigos de error.
 - Mantén: campo trampa `company`, consentimiento obligatorio, mensaje de error que diga qué hacer, prerrelleno desde `?plan=` y `?motivo=`.
@@ -137,6 +143,7 @@ scripts/generate-assets.mjs  # iconos PWA desde brand/*.svg
 
 - [ ] `npm run build` sin errores ni avisos nuevos
 - [ ] `npm run check` sin errores de tipos
+- [ ] `npm run i18n:check` sin avisos, y la página revisada también en `/en/` y `/pt/`
 - [ ] Revisado a 412 px (móvil) y 1366 px (escritorio), en modo claro y oscuro, sin scroll horizontal
 - [ ] Lighthouse móvil de la página tocada ≥ 95 en las cuatro categorías (hoy la home está en 100)
 - [ ] Si tocas `sw.js`, probado sin conexión con `npm run preview`
@@ -160,4 +167,7 @@ scripts/generate-assets.mjs  # iconos PWA desde brand/*.svg
 - **No** cambiar colores con valores hex sueltos en componentes; usa tokens.
 - **No** romper el funcionamiento sin JavaScript de enlaces, formulario y menú.
 - **No** crear páginas de ciudades con texto duplicado para SEO.
+- **No** escribir textos dentro de componentes ni vistas: van al diccionario o a `src/data/`, en los tres idiomas.
+- **No** redirigir según el idioma del navegador ni traducir con servicios automáticos en el navegador: el visitante elige el idioma con el selector.
+- **No** cambiar las direcciones en español de `routes.ts` (posicionamiento y QR ya impresos).
 - **No** subir la versión de Astro o Node sin comprobar `engines` y `.nvmrc`.
