@@ -62,6 +62,11 @@ export const faqs: Faq[] = [
     on: ['web'],
   },
   {
+    q: '¿Puedo tener solo la carta con QR, sin carta en papel?',
+    a: 'No. En la Comunidad de Madrid el local tiene que ofrecer siempre la carta y la lista de precios también en papel, y usar el QR es opcional para el cliente. Por eso la carta en papel la imprimes desde el mismo panel, con los mismos platos y precios que el QR.',
+    on: ['carta'],
+  },
+  {
     q: '¿Hay permanencia?',
     a: 'No. Pagas mes a mes y das de baja un módulo cuando quieras. Lo único que se paga una vez es el alta de la web, porque incluye el diseño y la puesta en marcha.',
     on: ['home', 'web', 'precios'],

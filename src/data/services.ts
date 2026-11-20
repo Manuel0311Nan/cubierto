@@ -25,9 +25,9 @@ export const services: Record<ModuleKey, ServicePageData> = {
       'Carta digital con QR para tu bar o restaurante: alérgenos obligatorios, menú del día, platos agotados al momento y traducción a otros idiomas. Lista en un día.',
     h1: 'Carta digital con QR para tu bar o restaurante',
     intro:
-      'Tus clientes escanean el QR de la mesa y ven tu carta o tu menú en su móvil, en su idioma y con los alérgenos claros. Tú la cambias desde el tuyo en segundos, sin reimprimir nada.',
+      'Tus clientes escanean el QR de la mesa y ven tu carta o tu menú en su móvil, en su idioma y con los alérgenos claros. Tú la cambias desde el tuyo en segundos, y la carta en papel que pide la normativa sale del mismo sitio, con los mismos precios.',
     beforeAfter: [
-      { before: 'Cambias un precio y toca reimprimir todas las cartas.', after: 'Lo cambias en el móvil y ya está publicado.' },
+      { before: 'Cambias un precio y toca rehacer todas las cartas.', after: 'Lo cambias en el móvil: el QR lo muestra al momento y la carta en papel la imprimes actualizada en un clic.' },
       { before: 'El camarero va mesa por mesa avisando de lo que se ha acabado.', after: 'Marcas el plato como agotado y la carta lo muestra al momento.' },
       { before: 'Los turistas preguntan qué lleva cada plato.', after: 'La carta aparece en inglés, francés o alemán, revisada por ti.' },
       { before: 'Un cliente con alergia te pide la ficha de alérgenos.', after: 'Cada plato muestra sus alérgenos y el cliente puede filtrar la carta.' },
@@ -40,7 +40,7 @@ export const services: Record<ModuleKey, ServicePageData> = {
       { title: 'QR por mesa, listo para imprimir', text: 'Un PDF con un QR por mesa y el nombre de tu local. El QR no cambia aunque cambies la carta.' },
       { title: 'Rápida en cualquier móvil', text: 'Carga en menos de dos segundos con datos móviles y sin instalar nada. Sin cookies ni registros para tus clientes.' },
     ],
-    included: ['Varias cartas: carta, menú del día, bebidas, postres', 'Fotos de los platos', 'Hasta 5 idiomas', 'QR general y por mesa', 'Cambios ilimitados por tu parte'],
+    included: ['Varias cartas: carta, menú del día, bebidas, postres', 'Carta en PDF para imprimir, siempre igual que la del QR', 'Fotos de los platos', 'Hasta 5 idiomas', 'QR general y por mesa', 'Cambios ilimitados por tu parte'],
     contactHeading: '¿Te enseño tu carta en digital?',
   },
   reservas: {
