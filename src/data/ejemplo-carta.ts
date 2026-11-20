@@ -1,5 +1,7 @@
 import type { AllergenKey } from './alergenos';
 import type { Locale } from '../i18n';
+import { example as exampleEn } from './en/ejemplo-carta';
+import { example as examplePt } from './pt/ejemplo-carta';
 
 /**
  * Carta de ejemplo de /carta-digital-qr/ejemplo/.
@@ -87,7 +89,7 @@ export interface ExampleText {
 }
 
 const es: ExampleText = { venue: exampleVenue, page: examplePage };
-const byLocale: Record<Locale, ExampleText> = { es, en: es, pt: es };
+const byLocale: Record<Locale, ExampleText> = { es, en: exampleEn, pt: examplePt };
 
 /** Carta de ejemplo en un idioma: en inglés y portugués, la carta traducida (como haría MENU-07). */
 export const getExample = (locale: Locale) => byLocale[locale];

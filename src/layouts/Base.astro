@@ -5,7 +5,8 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import CookieConsent from '../components/CookieConsent.astro';
 import { site, pricing } from '../config/site';
-import { getLocale, localeInfo, money, t } from '../i18n';
+import { getLocale, localeInfo, locales, money, t } from '../i18n';
+import { alternatesOf } from '../i18n/routes';
 
 interface Props {
   title: string;
@@ -19,7 +20,11 @@ const locale = getLocale(Astro);
 const tr = t(locale);
 const { title, description = tr.meta.description, jsonLd = [], noindex = false } = Astro.props;
 const canonical = new URL(Astro.url.pathname, site.url).href;
-const ogImage = new URL('/og.png', site.url).href;
+// Versiones de esta página en otros idiomas (hreflang). Solo las que existen; x-default es el español.
+const alternates = noindex ? [] : alternatesOf(Astro.url.pathname);
+const xDefault = alternates.find((a) => a.locale === 'es');
+// Imagen para compartir en el idioma de la página (public/og.png, og-en.png, og-pt.png).
+const ogImage = new URL(locale === 'es' ? '/og.png' : `/og-${locale}.png`, site.url).href;
 const fullTitle = title === site.name ? `${site.name} · ${tr.meta.tagline}` : `${title} | ${site.name}`;
 
 const sameAs = Object.values(site.profiles).filter(Boolean);
@@ -42,7 +47,7 @@ const organization = {
           telephone: site.contact.phone,
           email: site.contact.email,
           areaServed: 'ES',
-          availableLanguage: 'es',
+          availableLanguage: locales.map((l) => localeInfo[l].htmlLang),
         },
       }
     : {}),
@@ -75,6 +80,11 @@ const umamiDomains = `${host},www.${host}`;
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
+    {
+      alternates.length > 1 &&
+        alternates.map((a) => <link rel="alternate" hreflang={localeInfo[a.locale].hreflang} href={new URL(a.href, site.url).href} />)
+    }
+    {alternates.length > 1 && xDefault && <link rel="alternate" hreflang="x-default" href={new URL(xDefault.href, site.url).href} />}
 
     <link rel="preload" href={fontUrl} as="font" type="font/woff2" crossorigin />
 
@@ -86,6 +96,7 @@ const umamiDomains = `${host},www.${host}`;
 
     <meta property="og:type" content="website" />
     <meta property="og:locale" content={localeInfo[locale].og} />
+    {alternates.filter((a) => a.locale !== locale).map((a) => <meta property="og:locale:alternate" content={localeInfo[a.locale].og} />)}
     <meta property="og:site_name" content={site.fullName} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />

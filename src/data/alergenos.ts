@@ -1,4 +1,6 @@
 import type { Locale } from '../i18n';
+import { allergens as allergensEn } from './en/alergenos';
+import { allergens as allergensPt } from './pt/alergenos';
 
 /**
  * Los 14 alérgenos de declaración obligatoria: anexo II del Reglamento (UE) 1169/2011.
@@ -33,7 +35,7 @@ export interface Allergen {
 
 export const allergenByKey = Object.fromEntries(allergens.map((a) => [a.key, a])) as Record<AllergenKey, Allergen>;
 
-const byLocale: Record<Locale, readonly Allergen[]> = { es: allergens, en: allergens, pt: allergens };
+const byLocale: Record<Locale, readonly Allergen[]> = { es: allergens, en: allergensEn, pt: allergensPt };
 
 /** Los 14 alérgenos en un idioma, con la denominación oficial del Reglamento (UE) 1169/2011 en ese idioma. */
 export const getAllergens = (locale: Locale) => {

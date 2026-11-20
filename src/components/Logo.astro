@@ -1,5 +1,6 @@
 ---
 import { site } from '../config/site';
+import { getLocale } from '../i18n';
 
 interface Props {
   /** `brand`: verde sobre fondo claro (cabecera). `light`: toma el color del texto (pie sobre verde). */
@@ -8,6 +9,8 @@ interface Props {
   withLine?: boolean;
 }
 const { tone = 'brand', withLine = true } = Astro.props;
+// El "apellido" es parte de la marca y no se traduce; en otros idiomas se marca como español para los lectores de pantalla.
+const lineLang = getLocale(Astro) === 'es' ? undefined : 'es';
 ---
 
 <span class:list={['logo', tone]}>
@@ -34,7 +37,7 @@ const { tone = 'brand', withLine = true } = Astro.props;
   </svg>
   <span class="words">
     <span class="name">{site.name.toLowerCase()}</span>
-    {withLine && <span class="line">{site.brandLine}</span>}
+    {withLine && <span class="line" lang={lineLang}>{site.brandLine}</span>}
   </span>
 </span>
 

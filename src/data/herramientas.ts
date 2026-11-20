@@ -1,5 +1,7 @@
 import type { ModuleKey } from '../config/site';
 import type { Locale, RouteKey } from '../i18n';
+import { tools as toolsEn } from './en/herramientas';
+import { tools as toolsPt } from './pt/herramientas';
 
 /**
  * Herramientas gratis para dueños de bares y restaurantes.
@@ -153,7 +155,7 @@ export interface ToolsText {
 }
 
 const es: ToolsText = { tools, toolsPage, allergenSheet, noShowCalc, qrGenerator };
-const byLocale: Record<Locale, ToolsText> = { es, en: es, pt: es };
+const byLocale: Record<Locale, ToolsText> = { es, en: toolsEn, pt: toolsPt };
 
 /** Textos de /herramientas/ en un idioma. */
 export const getTools = (locale: Locale) => byLocale[locale];

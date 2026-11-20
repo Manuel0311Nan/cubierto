@@ -6,7 +6,8 @@
     "build": "astro build",
     "preview": "npx --yes serve@14.2.6 .vercel/output/static -l 4321",
     "check": "astro check",
-    "icons": "node scripts/generate-assets.mjs"
+    "icons": "node scripts/generate-assets.mjs",
+    "i18n:check": "node scripts/check-i18n.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

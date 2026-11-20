@@ -1,8 +1,11 @@
 /* Service worker de la web. Sube VERSION cuando cambies esta lógica. */
-const VERSION = 'v3';
+const VERSION = 'v4';
 const PAGES = `pages-${VERSION}`;
 const ASSETS = `assets-${VERSION}`;
-const PRECACHE = ['/', '/offline/', '/contacto/', '/favicon.svg', '/manifest.webmanifest', '/icons/icon-192.png'];
+// Página sin conexión de cada idioma (src/i18n/routes.ts: offline).
+const OFFLINE = { en: '/en/offline/', pt: '/pt/offline/' };
+const PRECACHE = ['/', '/offline/', ...Object.values(OFFLINE), '/contacto/', '/favicon.svg', '/manifest.webmanifest', '/icons/icon-192.png'];
+const offlineFor = (pathname) => OFFLINE[pathname.split('/')[1]] ?? '/offline/';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(PAGES).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
@@ -31,7 +34,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(PAGES).then((c) => c.put(request, copy));
           return res;
         })
-        .catch(async () => (await caches.match(request)) || (await caches.match('/offline/'))),
+        .catch(async () => (await caches.match(request)) || (await caches.match(offlineFor(url.pathname)))),
     );
     return;
   }

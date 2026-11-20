@@ -26,7 +26,8 @@ const eur = (n: number) => n.toLocaleString('es-ES', { minimumFractionDigits: 2,
 
 // El panel del dueño va en el idioma de la página. La carta del cliente es la de un restaurante
 // español: en español, con el interruptor para verla en inglés (como hará la traducción de la carta).
-const tr = t(getLocale(Astro)).menuDemo;
+const locale = getLocale(Astro);
+const tr = t(locale).menuDemo;
 ---
 
 <div class="demo" data-demo>
@@ -60,7 +61,7 @@ const tr = t(getLocale(Astro)).menuDemo;
   </div>
 
   <div class="phone" aria-label={tr.phone}>
-    <div class="screen" data-lang="es">
+    <div class="screen" data-lang="es" lang={locale === 'es' ? undefined : 'es'}>
       <div class="venue">
         <p class="venue-name">Casa Brezo</p>
         <p class="venue-sub"><span data-es>Carta</span><span data-en hidden>Menu</span></p>
@@ -157,6 +158,7 @@ const tr = t(getLocale(Astro)).menuDemo;
       } else if (action === 'lang') {
         const en = toggle(target);
         screen.dataset.lang = en ? 'en' : 'es';
+        if (screen.hasAttribute('lang') || en) screen.lang = en ? 'en' : 'es';
         screen.querySelectorAll<HTMLElement>('[data-es]').forEach((el) => (el.hidden = en));
         screen.querySelectorAll<HTMLElement>('[data-en]').forEach((el) => (el.hidden = !en));
         flash(screen.querySelector('.venue'));

@@ -18,7 +18,7 @@ const year = new Date().getFullYear();
       <Logo tone="light" />
       <p>{f.from(tr.meta.tagline, site.city)}</p>
       <p><a href={`mailto:${site.contact.email}`}>{site.contact.email}</a></p>
-      {site.contact.phone && <p><a href={`tel:${site.contact.phone}`} data-umami-event="llamar">{site.contact.phoneDisplay}</a></p>}
+      {site.contact.phone && <p><a href={`tel:${site.contact.phone}`} data-umami-event="llamar">{locale === 'es' ? site.contact.phoneDisplay : site.contact.phoneDisplayIntl}</a></p>}
     </div>
 
     <nav aria-label={f.services}>

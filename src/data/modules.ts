@@ -1,5 +1,7 @@
 import type { ModuleKey } from '../config/site';
 import { path, type Locale } from '../i18n';
+import { modules as modulesEn } from './en/modules';
+import { modules as modulesPt } from './pt/modules';
 
 export interface ServiceModule {
   key: ModuleKey;
@@ -50,7 +52,7 @@ export const modules: ServiceModule[] = [
   },
 ];
 
-const byLocale: Record<Locale, ServiceModule[]> = { es: modules, en: modules, pt: modules };
+const byLocale: Record<Locale, ServiceModule[]> = { es: modules, en: modulesEn, pt: modulesPt };
 
 /** Resumen de los módulos en un idioma (mismo orden en todos). */
 export const getModules = (locale: Locale) => byLocale[locale];

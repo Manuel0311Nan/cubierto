@@ -152,6 +152,8 @@ export const es = {
     consentBefore: 'He leído la ',
     consentLink: 'política de privacidad',
     consentAfter: ' y acepto que uséis mis datos para responderme.',
+    // Resumen de la política de privacidad para quien no lee español (en español no hace falta: la política está en su idioma).
+    privacyNote: (_holder: string, _email: string) => '',
     submit: 'Enviar mensaje',
     sending: 'Enviando…',
     okTitle: 'Mensaje enviado',

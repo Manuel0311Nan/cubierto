@@ -1,5 +1,7 @@
 import type { ModuleKey } from '../config/site';
 import { path, type Locale } from '../i18n';
+import { services as servicesEn } from './en/services';
+import { services as servicesPt } from './pt/services';
 
 export interface ServicePageData {
   key: ModuleKey;
@@ -98,7 +100,7 @@ export const services: Record<ModuleKey, ServicePageData> = {
   },
 };
 
-const byLocale: Record<Locale, Record<ModuleKey, ServicePageData>> = { es: services, en: services, pt: services };
+const byLocale: Record<Locale, Record<ModuleKey, ServicePageData>> = { es: services, en: servicesEn, pt: servicesPt };
 
 /** Textos de las páginas de servicio en un idioma. */
 export const getServices = (locale: Locale) => byLocale[locale];

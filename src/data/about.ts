@@ -1,4 +1,6 @@
 import type { Locale } from '../i18n';
+import { about as aboutEn } from './en/about';
+import { about as aboutPt } from './pt/about';
 
 /**
  * Tus datos para "Sobre mí".
@@ -82,24 +84,31 @@ export const publishedEducation = publishable(education);
 /** Nombre a mostrar: sin el apellido mientras siga pendiente. */
 export const displayName = hasPlaceholder(person.name) ? person.name.replace(/\s*\[[^\]]*\]/g, '') : person.name;
 
-export interface AboutText {
+/** Traducción de "Sobre mí": textos, y experiencia y formación en el mismo orden que arriba (sin periodo: se toma del español). */
+export interface AboutTranslation {
   role: string;
   intro: string;
   promise: string;
-  experience: TimelineItem[];
-  education: TimelineItem[];
+  experience: Array<Omit<TimelineItem, 'period'>>;
+  education: Array<Omit<TimelineItem, 'period'>>;
 }
 
-const es: AboutText = { role: person.role, intro: person.intro, promise: person.promise, experience, education };
-const byLocale: Record<Locale, AboutText> = { es, en: es, pt: es };
+const withPeriods = (items: Array<Omit<TimelineItem, 'period'>>, source: TimelineItem[]): TimelineItem[] =>
+  items.map((it, i) => ({ period: source[i]?.period ?? '', ...it }));
 
-/** "Sobre mí" en un idioma: nombre, foto y enlaces son los mismos; textos, experiencia y formación, traducidos. */
+const byLocale: Record<Locale, AboutTranslation> = {
+  es: { role: person.role, intro: person.intro, promise: person.promise, experience, education },
+  en: aboutEn,
+  pt: aboutPt,
+};
+
+/** "Sobre mí" en un idioma: nombre, foto, enlaces y fechas son los mismos; textos, experiencia y formación, traducidos. */
 export const getAbout = (locale: Locale) => {
   const d = byLocale[locale];
   return {
     person: { ...person, role: d.role, intro: d.intro, promise: d.promise },
-    publishedExperience: publishable(d.experience),
-    publishedEducation: publishable(d.education),
+    publishedExperience: publishable(withPeriods(d.experience, experience)),
+    publishedEducation: publishable(withPeriods(d.education, education)),
     displayName,
   };
 };

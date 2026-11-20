@@ -32,6 +32,7 @@ export const site = {
     email: 'hola@cubierto.site',
     phone: '+34614898447', // formato internacional para tel: y JSON-LD (vacío = no se muestra)
     phoneDisplay: '614 89 84 47', // cómo se lee en la web
+    phoneDisplayIntl: '+34 614 89 84 47', // cómo se lee en la web en otros idiomas (con prefijo de España)
     whatsapp: '34614898447', // número para WhatsApp en formato 34600000000 (vacío = no se muestra)
     /**
      * Endpoint que recibe el formulario: /api/contacto/ (src/pages/api/contacto.ts).

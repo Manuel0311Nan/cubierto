@@ -19,7 +19,8 @@ export default defineConfig({
   },
   integrations: [
     sitemap({
-      filter: (page) => !/\/(offline|gracias|no-enviado)\/$/.test(page),
+      // Páginas que no se indexan, en todos los idiomas (src/i18n/routes.ts).
+      filter: (page) => !/\/(offline|gracias|no-enviado|thanks|not-sent|obrigado|nao-enviado)\/$/.test(page),
     }),
   ],
   build: {

@@ -43,7 +43,7 @@ const wa = site.contact.whatsapp;
       <p>{c.intro}</p>
       <ul class="direct">
         <li><a href={`mailto:${site.contact.email}`}>{site.contact.email}</a></li>
-        {site.contact.phone && <li><a href={`tel:${site.contact.phone}`} data-umami-event="llamar">{site.contact.phoneDisplay}</a></li>}
+        {site.contact.phone && <li><a href={`tel:${site.contact.phone}`} data-umami-event="llamar">{locale === 'es' ? site.contact.phoneDisplay : site.contact.phoneDisplayIntl}</a></li>}
         {wa && <li><a href={`https://wa.me/${wa}`} rel="noopener">{c.whatsapp}</a></li>}
       </ul>
     </div>
@@ -105,11 +105,14 @@ const wa = site.contact.whatsapp;
         <input id="cf-company" name="company" tabindex="-1" autocomplete="off" />
       </div>
       <input type="hidden" name="source" value="" data-source />
+      <input type="hidden" name="locale" value={locale} />
 
       <label class="check consent">
         <input type="checkbox" name="consent" value="yes" required />
-        <span>{c.consentBefore}<a href={path('privacidad', locale)}>{c.consentLink}</a>{c.consentAfter}</span>
+        <span>{c.consentBefore}<a href={path('privacidad', locale)} hreflang={locale === 'es' ? undefined : 'es'}>{c.consentLink}</a>{c.consentAfter}</span>
       </label>
+
+      {c.privacyNote(site.legal.holder, site.legal.email) && <p class="privacy-note">{c.privacyNote(site.legal.holder, site.legal.email)}</p>}
 
       <p class="error" data-error role="alert" hidden></p>
 
@@ -182,6 +185,7 @@ const wa = site.contact.whatsapp;
         interest: data.getAll('interest'),
         message: data.get('message'),
         source: data.get('source'),
+        locale: data.get('locale'),
         consent: true,
         sentAt: new Date().toISOString(),
       };
@@ -322,6 +326,11 @@ const wa = site.contact.whatsapp;
     flex: none;
   }
   .consent {
+    font-size: var(--step--1);
+    color: var(--muted);
+  }
+  .privacy-note {
+    margin-top: calc(-1 * var(--space-2));
     font-size: var(--step--1);
     color: var(--muted);
   }
